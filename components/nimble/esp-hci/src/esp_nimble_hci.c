@@ -210,7 +210,9 @@ void ble_hci_trans_buf_free(uint8_t *buf)
  */
 int ble_hci_trans_set_acl_free_cb(os_mempool_put_fn *cb, void *arg)
 {
-    return BLE_ERR_UNSUPPORTED;
+    ble_hci_acl_pool.mpe_put_cb = cb;
+    ble_hci_acl_pool.mpe_put_arg = arg;
+    return 0;
 }
 
 int ble_hci_trans_reset(void)
@@ -247,6 +249,7 @@ static struct os_mbuf *ble_hci_trans_acl_buf_alloc(void)
 static void ble_hci_rx_acl(uint8_t *data, uint16_t len)
 {
     struct os_mbuf *m;
+    int rc;
     int sr;
     if (len < BLE_HCI_DATA_HDR_SZ || len > MYNEWT_VAL(BLE_ACL_BUF_SIZE)) {
         return;
@@ -255,9 +258,11 @@ static void ble_hci_rx_acl(uint8_t *data, uint16_t len)
     m = ble_hci_trans_acl_buf_alloc();
 
     if (!m) {
+        ESP_LOGE(TAG, "%s failed to allocate ACL buffers; increase ACL_BUF_COUNT", __func__);
         return;
     }
-    if (os_mbuf_append(m, data, len)) {
+    if ((rc = os_mbuf_append(m, data, len)) != 0) {
+        ESP_LOGE(TAG, "%s failed to os_mbuf_append; rc = %d", __func__, rc);
         os_mbuf_free_chain(m);
         return;
     }
