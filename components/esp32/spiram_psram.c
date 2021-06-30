@@ -828,7 +828,7 @@ esp_err_t IRAM_ATTR psram_enable(psram_cache_mode_t mode, psram_vaddr_mode_t vad
         psram_io.psram_cs_io  = D0WD_PSRAM_CS_IO;
     } else {
         ESP_EARLY_LOGE(TAG, "Not a valid or known package id: %d", pkg_ver);
-        abort();
+        return ESP_FAIL;
     }
 
     const uint32_t spiconfig = ets_efuse_get_spiconfig();
