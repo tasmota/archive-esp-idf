@@ -21,12 +21,19 @@
 #define SOC_HMAC_SUPPORTED              0
 #define SOC_ASYNC_MEMCPY_SUPPORTED      1
 #define SOC_EFUSE_SECURE_BOOT_KEY_DIGESTS 3
-#define SOC_SDMMC_HOST_SUPPORTED        1
 #define SOC_EFUSE_REVOKE_BOOT_KEY_DIGESTS 1
-
+#define SOC_SDMMC_HOST_SUPPORTED        1
+#define SOC_FLASH_ENCRYPTION_XTS_AES      1
+#define SOC_FLASH_ENCRYPTION_XTS_AES_256 1
+#define SOC_PSRAM_DMA_CAPABLE           1
 
 /*-------------------------- ADC CAPS ----------------------------------------*/
-#include "adc_caps.h"
+#define SOC_ADC_PERIPH_NUM              (2)
+#define SOC_ADC_CHANNEL_NUM(PERIPH_NUM) (10)
+#define SOC_ADC_MAX_CHANNEL_NUM         (10)
+#define SOC_ADC_MAX_BITWIDTH            (12)
+#define SOC_ADC_SUPPORT_RTC_CTRL        (1)
+
 
 /*-------------------------- BROWNOUT CAPS -----------------------------------*/
 #include "brownout_caps.h"
@@ -37,8 +44,8 @@
 /*-------------------------- GDMA CAPS ---------------------------------------*/
 #define SOC_GDMA_GROUPS            (1)  // Number of GDMA groups
 #define SOC_GDMA_PAIRS_PER_GROUP   (5)  // Number of GDMA pairs in each group
-#define SOC_GDMA_L2_FIFO_BASE_SIZE (16) // Basic size of GDMA Level 2 FIFO
-#define SOC_GDMA_SUPPORT_EXTMEM    (1)  // GDMA can access external PSRAM
+#define SOC_GDMA_SUPPORT_PSRAM     (1)  // GDMA can access external PSRAM
+#define SOC_GDMA_PSRAM_MIN_ALIGN   (16) // Minimal alignment for PSRAM transaction
 
 /*-------------------------- GPIO CAPS ---------------------------------------*/
 #include "gpio_caps.h"

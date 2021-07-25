@@ -13,6 +13,9 @@
       "install": "always",
       "license": "GPL-3.0-with-GCC-exception",
       "name": "xtensa-esp32-elf",
+      "supported_targets": [
+        "esp32"
+      ],
       "version_cmd": [
         "xtensa-esp32-elf-gcc",
         "--version"
@@ -69,6 +72,9 @@
       "install": "always",
       "license": "GPL-3.0-with-GCC-exception",
       "name": "xtensa-esp32s2-elf",
+      "supported_targets": [
+        "esp32s2"
+      ],
       "version_cmd": [
         "xtensa-esp32s2-elf-gcc",
         "--version"
@@ -125,6 +131,9 @@
       "install": "always",
       "license": "GPL-3.0-with-GCC-exception",
       "name": "xtensa-esp32s3-elf",
+      "supported_targets": [
+        "esp32s3"
+      ],
       "version_cmd": [
         "xtensa-esp32s3-elf-gcc",
         "--version"
@@ -181,6 +190,9 @@
       "install": "always",
       "license": "GPL-3.0-with-GCC-exception",
       "name": "riscv32-esp-elf",
+      "supported_targets": [
+        "esp32c3"
+      ],
       "version_cmd": [
         "riscv32-esp-elf-gcc",
         "--version"
@@ -212,14 +224,14 @@
           "name": "esp-2021r1-8.4.0",
           "status": "recommended",
           "win32": {
-            "sha256": "5711eb407ffe44adddbd1281b6b575a5645e7193ca78faefa27dc5bc5b662bec",
-            "size": 191266312,
-            "url": "https://github.com/espressif/crosstool-NG/releases/download/esp-2021r1/riscv32-esp-elf-gcc8_4_0-esp-2021r1-win32.zip"
+            "sha256": "527f5f258c28a1fce6264a4f8dcb63fbfbd1e810881783497eccd101ca38cb07",
+            "size": 195148877,
+            "url": "https://github.com/espressif/crosstool-NG/releases/download/esp-2021r1/riscv32-esp-elf-gcc8_4_0-esp-2021r1-patch1-win32.zip"
           },
           "win64": {
-            "sha256": "be3c9ec364bd8e92924f922a4aec73136824f16e912e6a0b5cf5b30512f0ab96",
-            "size": 192799980,
-            "url": "https://github.com/espressif/crosstool-NG/releases/download/esp-2021r1/riscv32-esp-elf-gcc8_4_0-esp-2021r1-win64.zip"
+            "sha256": "8e8e3e385833960762e9f007bc3f7785daf282deb0c8a4dfdd6340b2cce556b0",
+            "size": 197027915,
+            "url": "https://github.com/espressif/crosstool-NG/releases/download/esp-2021r1/riscv32-esp-elf-gcc8_4_0-esp-2021r1-patch1-win64.zip"
           }
         }
       ]
@@ -244,6 +256,9 @@
             "linux-i686"
           ]
         }
+      ],
+      "supported_targets": [
+        "esp32"
       ],
       "version_cmd": [
         "esp32ulp-elf-as",
@@ -302,6 +317,9 @@
             "linux-i686"
           ]
         }
+      ],
+      "supported_targets": [
+        "esp32s2"
       ],
       "version_cmd": [
         "esp32s2ulp-elf-as",
@@ -374,6 +392,9 @@
         }
       ],
       "strip_container_dirs": 1,
+      "supported_targets": [
+        "all"
+      ],
       "version_cmd": [
         "cmake",
         "--version"
@@ -428,6 +449,9 @@
             "linux-i686"
           ]
         }
+      ],
+      "supported_targets": [
+        "all"
       ],
       "version_cmd": [
         "openocd",
@@ -487,6 +511,9 @@
           ]
         }
       ],
+      "supported_targets": [
+        "all"
+      ],
       "version_cmd": [
         "ninja",
         "--version"
@@ -535,6 +562,9 @@
           ]
         }
       ],
+      "supported_targets": [
+        "all"
+      ],
       "version_cmd": [
         "idf.py.exe",
         "-v"
@@ -579,6 +609,9 @@
           ]
         }
       ],
+      "supported_targets": [
+        "all"
+      ],
       "version_cmd": [
         "ccache.exe",
         "--version"
@@ -615,6 +648,10 @@
             "win64"
           ]
         }
+      ],
+      "supported_targets": [
+        "esp32s2",
+        "esp32s3"
       ],
       "version_cmd": [
         "dfu-util",

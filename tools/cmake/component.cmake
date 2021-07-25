@@ -275,6 +275,7 @@ macro(__component_add_sources sources)
                 endif()
 
                 file(GLOB dir_sources "${abs_dir}/*.c" "${abs_dir}/*.cpp" "${abs_dir}/*.S")
+                list(SORT dir_sources)
 
                 if(dir_sources)
                     foreach(src ${dir_sources})
@@ -530,7 +531,7 @@ endfunction()
 function(idf_component_mock)
     set(options)
     set(single_value)
-    set(multi_value MOCK_HEADER_FILES INCLUDE_DIRS)
+    set(multi_value MOCK_HEADER_FILES INCLUDE_DIRS REQUIRES)
     cmake_parse_arguments(_ "${options}" "${single_value}" "${multi_value}" ${ARGN})
 
     list(APPEND __REQUIRES "cmock")

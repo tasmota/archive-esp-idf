@@ -170,6 +170,10 @@ TEST_CASE("Test fast switching between PLL and XTAL", "[rtc_clk]")
     test_clock_switching(rtc_clk_cpu_freq_set_config_fast);
 }
 
+/* In CI environments, the 32kXTAL runners don't have 8MB psram for bank switching.
+   So can only test one config or the other. */
+#if !IDF_CI_BUILD || !CONFIG_SPIRAM_BANKSWITCH_ENABLE
+
 #define COUNT_TEST      3
 #define TIMEOUT_TEST_MS (5 + CONFIG_ESP32_RTC_CLK_CAL_CYCLES / 16)
 
@@ -207,7 +211,7 @@ static void start_freq(rtc_slow_freq_t required_src_freq, uint32_t start_delay_m
     printf("Test is started. Kconfig settings:\n Internal RC is selected,\n Oscillation cycles = %d,\n Calibration cycles = %d.\n",
             bootstrap_cycles,
             CONFIG_ESP32_RTC_CLK_CAL_CYCLES);
-#endif
+#endif // CONFIG_ESP32_RTC_CLK_SRC_EXT_CRYS
     if (start_delay_ms == 0 && CONFIG_ESP32_RTC_CLK_CAL_CYCLES < 1500){
         start_delay_ms = 50;
         printf("Recommended increase Number of cycles for RTC_SLOW_CLK calibration to 3000!\n");
@@ -268,7 +272,7 @@ TEST_CASE("Test starting external RTC quartz", "[rtc_clk][test_env=UT_T1_32kXTAL
     printf("Test is started. Kconfig settings:\n Internal RC is selected,\n Oscillation cycles = %d,\n Calibration cycles = %d.\n",
             bootstrap_cycles,
             CONFIG_ESP32_RTC_CLK_CAL_CYCLES);
-#endif
+#endif // CONFIG_ESP32_RTC_CLK_SRC_EXT_CRYS
     if (CONFIG_ESP32_RTC_CLK_CAL_CYCLES < 1500){
         printf("Recommended increase Number of cycles for RTC_SLOW_CLK calibration to 3000!\n");
     }
@@ -313,9 +317,9 @@ TEST_CASE("Test starting 'External 32kHz XTAL' on the board without it.", "[rtc_
     start_freq(RTC_SLOW_FREQ_RTC, 0);
 }
 
-#endif
+#endif // !IDF_CI_BUILD || !CONFIG_SPIRAM_BANKSWITCH_ENABLE
 
-static RTC_NOINIT_ATTR int64_t start = 0;
+#endif // !TEMPORARY_DISABLED_FOR_TARGETS(ESP32S2, ESP32S3, ESP32C3)
 
 TEST_CASE("Test rtc clk calibration compensation", "[rtc_clk]")
 {
@@ -344,6 +348,11 @@ TEST_CASE("Test rtc clk calibration compensation", "[rtc_clk]")
     TEST_ASSERT_GREATER_THAN(t1, t2);
 }
 
+#if !TEMPORARY_DISABLED_FOR_TARGETS(ESP32S3)
+/* Disabled until deep sleep is brought up TODO ESP32-S3 IDF-2691 */
+
+static RTC_NOINIT_ATTR int64_t start = 0;
+
 static void trigger_deepsleep(void)
 {
     printf("Trigger deep sleep. Waiting for 10 sec ...\n");
@@ -365,8 +374,8 @@ static void trigger_deepsleep(void)
 
 static void check_time_deepsleep_1(void)
 {
-    RESET_REASON reason = rtc_get_reset_reason(0);
-    TEST_ASSERT(reason == DEEPSLEEP_RESET);
+    soc_reset_reason_t reason = esp_rom_get_reset_reason(0);
+    TEST_ASSERT(reason == RESET_REASON_CORE_DEEP_SLEEP);
     int64_t end = esp_rtc_get_time_us();
     TEST_ASSERT_GREATER_THAN(start, end);
 
@@ -385,10 +394,12 @@ static void check_time_deepsleep_1(void)
 
 static void check_time_deepsleep_2(void)
 {
-    RESET_REASON reason = rtc_get_reset_reason(0);
-    TEST_ASSERT(reason == DEEPSLEEP_RESET);
+    soc_reset_reason_t reason = esp_rom_get_reset_reason(0);
+    TEST_ASSERT(reason == RESET_REASON_CORE_DEEP_SLEEP);
     int64_t end = esp_rtc_get_time_us();
     TEST_ASSERT_GREATER_THAN(start, end);
 }
 
 TEST_CASE_MULTIPLE_STAGES("Test rtc clk calibration compensation across deep sleep", "[rtc_clk][reset=DEEPSLEEP_RESET, DEEPSLEEP_RESET]", trigger_deepsleep, check_time_deepsleep_1, check_time_deepsleep_2);
+
+#endif // !TEMPORARY_DISABLED_FOR_TARGETS(ESP32S3)

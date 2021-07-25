@@ -30,8 +30,6 @@ components/lwip/include/apps/dhcpserver/dhcpserver.h
 
 components/lwip/lwip/src/include/lwip/priv/memp_std.h
 
-components/vfs/include/sys/dirent.h
-
 components/esp_phy/esp32/include/phy_init_data.h
 
 components/spi_flash/include/spi_flash_chip_issi.h
@@ -111,11 +109,15 @@ components/esp_hw_support/port/esp32/regi2c_ctrl.h
 components/esp_rom/include/esp32/rom/sha.h
 components/esp_rom/include/esp32/rom/secure_boot.h
 components/esp_rom/include/esp32c3/rom/spi_flash.h
+components/esp_rom/include/esp32c3/rom/rtc.h
 components/esp_rom/include/esp32s2/rom/spi_flash.h
 components/esp_rom/include/esp32s2/rom/cache.h
 components/esp_rom/include/esp32s2/rom/secure_boot.h
 components/esp_rom/include/esp32s2/rom/opi_flash.h
+components/esp_rom/include/esp32s2/rom/rtc.h
 components/esp_rom/include/esp32s2/rom/efuse.h
+components/esp_rom/include/esp32s3/rom/rtc.h
+components/esp_rom/include/esp32h2/rom/rtc.h
 components/esp32/include/esp32/dport_access.h
 components/esp32/include/rom/sha.h
 components/esp32/include/rom/secure_boot.h

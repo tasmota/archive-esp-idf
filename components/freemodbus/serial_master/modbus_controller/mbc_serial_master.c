@@ -61,7 +61,7 @@ static void modbus_master_task(void *pvParameters)
             // Send response buffer if ready to be sent
             BOOL xSentState = xMBMasterPortSerialTxPoll();
             if (xSentState) {
-                // Let state machine know that response was transmitted out
+                // Let state machine know that request frame was transmitted out
                 (void)xMBMasterPortEventPost(EV_MASTER_FRAME_SENT);
             }
         }
@@ -671,12 +671,13 @@ esp_err_t mbc_serial_master_create(void** handler)
     MB_MASTER_CHECK((mbm_opts->mbm_event_group != NULL),
                         ESP_ERR_NO_MEM, "mb event group error.");
     // Create modbus controller task
-    status = xTaskCreate((void*)&modbus_master_task,
+    status = xTaskCreatePinnedToCore((void*)&modbus_master_task,
                             "modbus_matask",
                             MB_CONTROLLER_STACK_SIZE,
                             NULL,                       // No parameters
                             MB_CONTROLLER_PRIORITY,
-                            &mbm_opts->mbm_task_handle);
+                            &mbm_opts->mbm_task_handle,
+                            MB_PORT_TASK_AFFINITY);
     if (status != pdPASS) {
         vTaskDelete(mbm_opts->mbm_task_handle);
         MB_MASTER_CHECK((status == pdPASS), ESP_ERR_NO_MEM,

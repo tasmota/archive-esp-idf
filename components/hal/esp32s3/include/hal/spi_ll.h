@@ -136,6 +136,8 @@ static inline void spi_ll_slave_init(spi_dev_t *hw)
     hw->user.usr_miso_highpart = 0;
     hw->user.usr_mosi_highpart = 0;
 
+    // Configure DMA In-Link to not be terminated when transaction bit counter exceeds
+    hw->dma_conf.rx_eof_en = 0;
     hw->dma_conf.dma_seg_trans_en = 0;
 
     //Disable unneeded ints
@@ -584,7 +586,6 @@ static inline void spi_ll_master_set_io_mode(spi_dev_t *hw, spi_ll_io_mode_t io_
 static inline void spi_ll_slave_set_seg_mode(spi_dev_t *hw, bool seg_trans)
 {
     hw->dma_conf.dma_seg_trans_en = seg_trans;
-    hw->dma_conf.rx_eof_en = seg_trans;
 }
 
 /**
@@ -609,6 +610,16 @@ static inline void spi_ll_master_select_cs(spi_dev_t *hw, int cs_id)
         hw->misc.cs1_dis = (cs_id == 1) ? 0 : 1;
         hw->misc.cs2_dis = (cs_id == 2) ? 0 : 1;
     }
+}
+
+/**
+ * Keep Chip Select activated after the current transaction.
+ *
+ * @param hw Beginning address of the peripheral registers.
+ * @param keep_active if 0 don't keep CS activated, else keep CS activated
+ */
+static inline void spi_ll_master_keep_cs(spi_dev_t *hw, int keep_active) {
+    hw->misc.cs_keep_active = (keep_active != 0) ? 1 : 0;
 }
 
 /*------------------------------------------------------------------------------
@@ -827,7 +838,7 @@ static inline void spi_ll_set_miso_bitlen(spi_dev_t *hw, size_t bitlen)
  */
 static inline void spi_ll_slave_set_rx_bitlen(spi_dev_t *hw, size_t bitlen)
 {
-    spi_ll_set_mosi_bitlen(hw, bitlen);
+    //This is not used in esp32s3
 }
 
 /**
@@ -838,7 +849,7 @@ static inline void spi_ll_slave_set_rx_bitlen(spi_dev_t *hw, size_t bitlen)
  */
 static inline void spi_ll_slave_set_tx_bitlen(spi_dev_t *hw, size_t bitlen)
 {
-    spi_ll_set_mosi_bitlen(hw, bitlen);
+    //This is not used in esp32s3
 }
 
 /**

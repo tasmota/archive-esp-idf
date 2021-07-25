@@ -47,8 +47,8 @@
 * @esp-idf-codeowners/other
 
 /.*                                   @esp-idf-codeowners/tools
-/.gitlab/ci/                          @esp-idf-codeowners/ci
 /.gitlab-ci.yml                       @esp-idf-codeowners/ci
+/.gitlab/ci/                          @esp-idf-codeowners/ci
 /.pre-commit-config.yaml              @esp-idf-codeowners/ci
 /.readthedocs.yml                     @esp-idf-codeowners/docs
 /CMakeLists.txt                       @esp-idf-codeowners/build-config
@@ -106,6 +106,7 @@
 /components/hal/                      @esp-idf-codeowners/peripherals
 /components/heap/                     @esp-idf-codeowners/system
 /components/idf_test/                 @esp-idf-codeowners/ci
+/components/ieee802154/               @esp-idf-codeowners/ieee802154
 /components/jsmn/                     @esp-idf-codeowners/app-utilities
 /components/json/                     @esp-idf-codeowners/app-utilities
 /components/libsodium/                @esp-idf-codeowners/security
@@ -125,14 +126,16 @@
 /components/protocomm/                @esp-idf-codeowners/app-utilities
 /components/pthread/                  @esp-idf-codeowners/system
 /components/sdmmc/                    @esp-idf-codeowners/storage
-/components/soc/                      @esp-idf-codeowners/peripherals
+/components/soc/                      @esp-idf-codeowners/peripherals @esp-idf-codeowners/system
 /components/spi_flash/                @esp-idf-codeowners/peripherals
 /components/spiffs/                   @esp-idf-codeowners/storage
 /components/tcp_transport/            @esp-idf-codeowners/network
 /components/tcpip_adapter/            @esp-idf-codeowners/network
-/components/tinyusb/                  @esp-idf-codeowners/peripherals
+/components/tinyusb/                  @esp-idf-codeowners/peripherals/usb
+/components/touch_element/            @esp-idf-codeowners/peripherals
 /components/ulp/                      @esp-idf-codeowners/system
 /components/unity/                    @esp-idf-codeowners/ci
+/components/usb/                      @esp-idf-codeowners/peripherals/usb
 /components/vfs/                      @esp-idf-codeowners/storage
 /components/wear_levelling/           @esp-idf-codeowners/storage
 /components/wifi_provisioning/        @esp-idf-codeowners/app-utilities
@@ -148,8 +151,6 @@
 /docs/**/api-reference/storage/         @esp-idf-codeowners/storage
 /docs/**/api-reference/system/          @esp-idf-codeowners/system
 /docs/**/security/                      @esp-idf-codeowners/security
-
-/examples/**/*.py             @esp-idf-codeowners/ci @esp-idf-codeowners/tools
 
 /examples/bluetooth/          @esp-idf-codeowners/bluetooth
 /examples/build_system/       @esp-idf-codeowners/build-config
@@ -167,6 +168,8 @@
 /examples/system/             @esp-idf-codeowners/system
 /examples/wifi/               @esp-idf-codeowners/wifi
 
+/examples/**/*.py             @esp-idf-codeowners/ci @esp-idf-codeowners/tools
+
 /make/    @esp-idf-codeowners/build-config
 
 /tools/                       @esp-idf-codeowners/tools
@@ -180,5 +183,15 @@
 /tools/kconfig*/              @esp-idf-codeowners/build-config
 /tools/ldgen/                 @esp-idf-codeowners/build-config
 /tools/mass_mfg/              @esp-idf-codeowners/app-utilities
+
+## Note: owners here should be the same as the owners for the same example subdir, above
+/tools/test_apps/build_system/       @esp-idf-codeowners/build-config
+/tools/test_apps/protocols/          @esp-idf-codeowners/network @esp-idf-codeowners/app-utilities
+/tools/test_apps/security/           @esp-idf-codeowners/security
+/tools/test_apps/system/             @esp-idf-codeowners/system
+
+/tools/test_apps/**/*.py             @esp-idf-codeowners/ci @esp-idf-codeowners/tools
+
+/tools/unit-test-app/         @esp-idf-codeowners/system @esp-idf-codeowners/tools
 
 requirements.txt              @esp-idf-codeowners/tools
