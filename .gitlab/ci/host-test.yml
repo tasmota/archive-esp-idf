@@ -349,9 +349,30 @@ test_log:
     - idf.py build
     - build/test_log_host.elf
 
+test_esp_event:
+  extends: .host_test_template
+  script:
+    - cd ${IDF_PATH}/components/esp_event/host_test/esp_event_unit_test
+    - idf.py build
+    - build/test_esp_event_host.elf
+
 test_eh_frame_parser:
   extends: .host_test_template
   script:
     - cd ${IDF_PATH}/components/esp_system/test_eh_frame_parser
     - make
     - ./eh_frame_test
+
+test_rom_on_linux_works:
+  extends: .host_test_template
+  script:
+    - cd ${IDF_PATH}/components/esp_rom/host_test/rom_test
+    - idf.py build
+    - build/test_rom_host.elf
+
+test_cxx_gpio:
+  extends: .host_test_template
+  script:
+    - cd ${IDF_PATH}/examples/cxx/experimental/experimental_cpp_component/host_test/gpio
+    - idf.py build
+    - build/test_gpio_cxx_host.elf

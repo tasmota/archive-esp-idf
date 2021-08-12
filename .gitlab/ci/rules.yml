@@ -13,6 +13,9 @@
   - ".gitlab/ci/static-code-analysis.yml"
   - "**/*.py"
 
+.patterns-sonarqube-files: &patterns-sonarqube-files
+  - "tools/ci/sonar_exclude_list.txt"
+
 .patterns-example_test: &patterns-example_test
   - "tools/ci/python_packages/gitlab_api.py"
   - "tools/ci/python_packages/idf_http_server_test/**/*"
@@ -34,11 +37,13 @@
 
 .patterns-build_components: &patterns-build_components
   - "components/**/*"
+  - "examples/cxx/experimental/experimental_cpp_component/*"
 
 .patterns-build_system: &patterns-build_system
   - "tools/cmake/**/*"
   - "tools/kconfig_new/**/*"
   - "tools/tools.json"
+  - "tools/ci/test_build_system*.sh"
 
 .patterns-custom_test: &patterns-custom_test
   - "components/espcoredump/**/*"
@@ -237,6 +242,8 @@
       changes: *patterns-c-files
     - <<: *if-dev-push
       changes: *patterns-python-files
+    - <<: *if-dev-push
+      changes: *patterns-sonarqube-files
 
 # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 # DO NOT place comments or maintain any code from this line

@@ -33,6 +33,9 @@ extern "C" {
 #define UART_LL_MIN_WAKEUP_THRESH (2)
 #define UART_LL_INTR_MASK         (0x7ffff) //All interrupt mask
 
+#define UART_LL_FSM_IDLE          (0x0)
+#define UART_LL_FSM_TX_WAIT_SEND  (0xf)
+
 // Define UART interrupts
 typedef enum {
     UART_INTR_RXFIFO_FULL      = (0x1 << 0),
@@ -856,6 +859,67 @@ FORCE_INLINE_ATTR uint16_t uart_ll_get_rx_tout_thr(uart_dev_t *hw)
 FORCE_INLINE_ATTR uint16_t uart_ll_max_tout_thrd(uart_dev_t *hw)
 {
     return UART_RX_TOUT_THRHD_V;
+}
+
+/**
+ * @brief  Configure the auto baudrate.
+ *
+ * @param  hw Beginning address of the peripheral registers.
+ * @param  enable Boolean marking whether the auto baudrate should be enabled or not.
+ */
+FORCE_INLINE_ATTR void uart_ll_set_autobaud_en(uart_dev_t *hw, bool enable)
+{
+    hw->conf0.autobaud_en = enable ? 1 : 0;
+}
+
+/**
+ * @brief  Get the RXD edge count.
+ *
+ * @param  hw Beginning address of the peripheral registers.
+ */
+FORCE_INLINE_ATTR uint32_t uart_ll_get_rxd_edge_cnt(uart_dev_t *hw)
+{
+    return hw->rxd_cnt.rxd_edge_cnt;
+}
+
+/**
+ * @brief  Get the positive pulse minimum count.
+ *
+ * @param  hw Beginning address of the peripheral registers.
+ */
+FORCE_INLINE_ATTR uint32_t uart_ll_get_pos_pulse_cnt(uart_dev_t *hw)
+{
+    return hw->pospulse.posedge_min_cnt;
+}
+
+/**
+ * @brief  Get the negative pulse minimum count.
+ *
+ * @param  hw Beginning address of the peripheral registers.
+ */
+FORCE_INLINE_ATTR uint32_t uart_ll_get_neg_pulse_cnt(uart_dev_t *hw)
+{
+    return hw->negpulse.negedge_min_cnt;
+}
+
+/**
+ * @brief  Get the high pulse minimum count.
+ *
+ * @param  hw Beginning address of the peripheral registers.
+ */
+FORCE_INLINE_ATTR uint32_t uart_ll_get_high_pulse_cnt(uart_dev_t *hw)
+{
+    return hw->highpulse.highpulse_min_cnt;
+}
+
+/**
+ * @brief  Get the low pulse minimum count.
+ *
+ * @param  hw Beginning address of the peripheral registers.
+ */
+FORCE_INLINE_ATTR uint32_t uart_ll_get_low_pulse_cnt(uart_dev_t *hw)
+{
+    return hw->lowpulse.lowpulse_min_cnt;
 }
 
 /**

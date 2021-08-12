@@ -13,7 +13,13 @@ set(srcs "src/nvs_api.cpp"
          "src/nvs_partition_manager.cpp"
          "src/nvs_types.cpp")
 
-set(public_req spi_flash)
+set(public_req "spi_flash")
+
+# Current linux-based builds don't have common components.
+# Add the necessary ones manually:
+if(${target} STREQUAL "linux")
+    list(APPEND public_req "esp_rom" "esp_common" "log")
+endif()
 
 set(include_dirs "include")
 
@@ -29,9 +35,7 @@ if(${target} STREQUAL "linux")
     endif()
     idf_component_get_property(spi_flash_dir spi_flash COMPONENT_DIR)
     target_include_directories(${COMPONENT_LIB} PUBLIC
-            "${CMAKE_CURRENT_SOURCE_DIR}/mock/int"
             "${spi_flash_dir}/sim/stubs/freertos/include")
-    target_sources(${COMPONENT_LIB} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/mock/int/crc.cpp")
     target_compile_options(${COMPONENT_LIB} PUBLIC "-DLINUX_TARGET")
 else()
     # TODO: this is a workaround until IDF-2085 is fixed

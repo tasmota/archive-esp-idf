@@ -106,11 +106,10 @@
 
 /*-------------------------- I2S CAPS ----------------------------------------*/
 #define SOC_I2S_NUM                 (1)
-
-#define SOC_I2S_APLL_MIN_FREQ       (250000000)
-#define SOC_I2S_APLL_MAX_FREQ       (500000000)
-#define SOC_I2S_APLL_MIN_RATE       (10675) //in Hz, I2S Clock rate limited by hardware
-#define SOC_I2S_MAX_BUFFER_SIZE     (4 * 1024 * 1024) //the maximum RAM can be allocated
+#define SOC_I2S_SUPPORTS_PCM        (1)
+#define SOC_I2S_SUPPORTS_PDM_TX     (1)
+#define SOC_I2S_SUPPORTS_PDM_CODEC  (1)
+#define SOC_I2S_SUPPORTS_TDM        (1)
 
 /*-------------------------- LEDC CAPS ---------------------------------------*/
 #define SOC_LEDC_SUPPORT_XTAL_CLOCK  (1)
@@ -235,9 +234,8 @@
 #define SOC_FLASH_ENCRYPTED_XTS_AES_BLOCK_MAX   (32)
 
 /*-------------------------- UART CAPS ---------------------------------------*/
-// ESP32-C3 has 2 UARTs
+// ESP32-H2 has 2 UARTs
 #define SOC_UART_NUM                (2)
-
 #define SOC_UART_FIFO_LEN           (128)      /*!< The UART hardware FIFO length */
 #define SOC_UART_BITRATE_MAX        (5000000)  /*!< Max bit rate supported by UART */
 

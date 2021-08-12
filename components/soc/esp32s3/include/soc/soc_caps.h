@@ -28,13 +28,19 @@
 #define SOC_FLASH_ENCRYPTION_XTS_AES_256 1
 #define SOC_PSRAM_DMA_CAPABLE           1
 
+/*-------------------------- SOC CAPS ----------------------------------------*/
+#define SOC_APPCPU_HAS_CLOCK_GATING_BUG (1)
+
 /*-------------------------- ADC CAPS ----------------------------------------*/
 #define SOC_ADC_PERIPH_NUM              (2)
 #define SOC_ADC_CHANNEL_NUM(PERIPH_NUM) (10)
 #define SOC_ADC_MAX_CHANNEL_NUM         (10)
 #define SOC_ADC_MAX_BITWIDTH            (12)
 #define SOC_ADC_SUPPORT_RTC_CTRL        (1)
+#define SOC_ADC_ARBITER_SUPPORTED       (1)
 
+/*-------------------------- APB BACKUP DMA CAPS -------------------------------*/
+#define SOC_APB_BACKUP_DMA              (1)
 
 /*-------------------------- BROWNOUT CAPS -----------------------------------*/
 #include "brownout_caps.h"
@@ -59,7 +65,12 @@
 #include "i2c_caps.h"
 
 /*-------------------------- I2S CAPS ----------------------------------------*/
-#include "i2s_caps.h"
+#define SOC_I2S_NUM                 (2)
+#define SOC_I2S_SUPPORTS_PCM        (1)
+#define SOC_I2S_SUPPORTS_PDM_TX     (1)
+#define SOC_I2S_SUPPORTS_PDM_RX     (1)
+#define SOC_I2S_SUPPORTS_PDM_CODEC  (1)
+#define SOC_I2S_SUPPORTS_TDM        (1)
 
 /*-------------------------- LEDC CAPS ---------------------------------------*/
 #include "ledc_caps.h"
@@ -70,10 +81,11 @@
 #define SOC_MCPWM_OPERATORS_PER_GROUP        (3)    ///< The number of operators that each group has
 #define SOC_MCPWM_COMPARATORS_PER_OPERATOR   (2)    ///< The number of comparators that each operator has
 #define SOC_MCPWM_GENERATORS_PER_OPERATOR    (2)    ///< The number of generators that each operator has
-#define SOC_MCPWM_FAULT_DETECTORS_PER_GROUP  (3)    ///< The number of fault signal detectors that each group has
+#define SOC_MCPWM_TRIGGERS_PER_OPERATOR      (2)    ///< The number of triggers that each operator has
+#define SOC_MCPWM_GPIO_FAULTS_PER_GROUP      (3)    ///< The number of fault signal detectors that each group has
 #define SOC_MCPWM_CAPTURE_TIMERS_PER_GROUP   (1)    ///< The number of capture timers that each group has
 #define SOC_MCPWM_CAPTURE_CHANNELS_PER_TIMER (3)    ///< The number of capture channels that each capture timer has
-#define SOC_MCPWM_EXT_SYNCERS_PER_GROUP      (3)    ///< The number of external syncers that each group has
+#define SOC_MCPWM_GPIO_SYNCHROS_PER_GROUP    (3)    ///< The number of GPIO synchros that each group has
 #define SOC_MCPWM_BASE_CLK_HZ       (160000000ULL)  ///< Base Clock frequency of 160MHz
 
 /*-------------------------- MPU CAPS ----------------------------------------*/

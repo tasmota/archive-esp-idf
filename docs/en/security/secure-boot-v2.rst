@@ -36,11 +36,11 @@ Advantages
 
 - The RSA public key is stored on the device. The corresponding RSA private key is kept secret on a server and is never accessed by the device.
 
-  .. only:: esp32
+.. only:: esp32
 
     - Only one public key can be generated and stored in ESP32 ECO3 during manufacturing.
 
-  .. only:: esp32s2 or esp32c3
+.. only:: esp32s2 or esp32c3
 
     - Up to three public keys can be generated and stored in the chip during manufacturing.
 
@@ -152,15 +152,15 @@ eFuse usage
 
     - ABS_DONE_1 - Enables secure boot protection on boot.
 
-    - BLK2 - Stores the SHA-256 digest of the public key. SHA-256 hash of public key modulus, exponent, precalculated R & M’ values (represented as 776 bytes – offsets 36 to 812 - as per the :ref:`signature-block-format`) is written to an eFuse key block.
+    - BLK2 - Stores the SHA-256 digest of the public key. SHA-256 hash of public key modulus, exponent, precalculated R & M’ values (represented as 776 bytes – offsets 36 to 812 - as per the :ref:`signature-block-format`) is written to an eFuse key block. The write-protection bit must be set, but the read-protection bit must not.
 
 .. only:: esp32s2 or esp32c3
 
     - SECURE_BOOT_EN - Enables secure boot protection on boot.
 
-    - KEY_PURPOSE_X - Set the purpose of the key block on {IDF_TARGET_NAME} by programming SECURE_BOOT_DIGESTX (X = 0, 1, 2) into KEY_PURPOSE_X (X = 0, 1, 2, 3, 4, 5). Example: If KEY_PURPOSE_2 is set to SECURE_BOOT_DIGEST1, then BLOCK_KEY2 will have the Secure Boot V2 public key digest.
+    - KEY_PURPOSE_X - Set the purpose of the key block on {IDF_TARGET_NAME} by programming SECURE_BOOT_DIGESTX (X = 0, 1, 2) into KEY_PURPOSE_X (X = 0, 1, 2, 3, 4, 5). Example: If KEY_PURPOSE_2 is set to SECURE_BOOT_DIGEST1, then BLOCK_KEY2 will have the Secure Boot V2 public key digest. The write-protection bit must be set (this field does not have a read-protection bit).
 
-    - BLOCK_KEYX - The block contains the data corresponding to its purpose programmed in KEY_PURPOSE_X. Stores the SHA-256 digest of the public key. SHA-256 hash of public key modulus, exponent, precalculated R & M’ values (represented as 776 bytes – offsets 36 to 812 - as per the :ref:`signature-block-format`) is written to an eFuse key block.
+    - BLOCK_KEYX - The block contains the data corresponding to its purpose programmed in KEY_PURPOSE_X. Stores the SHA-256 digest of the public key. SHA-256 hash of public key modulus, exponent, precalculated R & M’ values (represented as 776 bytes – offsets 36 to 812 - as per the :ref:`signature-block-format`) is written to an eFuse key block. The write-protection bit must be set, but the read-protection bit must not.
 
     - KEY_REVOKEX - The revocation bits corresponding to each of the 3 key block. Ex. Setting KEY_REVOKE2 revokes the key block whose key purpose is SECURE_BOOT_DIGEST2.
 
@@ -168,26 +168,30 @@ eFuse usage
 
     To ensure no trusted keys can be added later by an attacker, each unused key digest slot should be revoked (KEY_REVOKEX). It will be checked during app startup in :cpp:func:`esp_secure_boot_init_checks` and fixed unless :ref:`CONFIG_SECURE_BOOT_ALLOW_UNUSED_DIGEST_SLOTS` is enabled.
 
+The key(s) must be readable in order to give software access to it. If the key(s) is read-protected then the software reads the key(s) as all zeros and the signature verification process occurs with error, bootloader and app can not be run.
+
 .. _secure-boot-v2-howto:
 
 How To Enable Secure Boot V2
 ----------------------------
 
-1. Open the :ref:`project-configuration-menu`, in "Security Features" set "Enable hardware Secure Boot in bootloader" to enable Secure Boot.
+1. Open the :ref:`project-configuration-menu`, in "Security features" set "Enable hardware Secure Boot in bootloader" to enable Secure Boot.
 
 .. only:: esp32
 
     2. For ESP32, Secure Boot V2 is available only ESP32 ECO3 onwards. To view the "Secure Boot V2" option the chip revision should be changed to revision 3 (ESP32- ECO3). To change the chip revision, set "Minimum Supported ESP32 Revision" to Rev 3 in "Component Config" -> "ESP32- Specific".
 
-    3. Specify the secure boot signing key path. The file can be anywhere on your system. A relative path will be evaluated from the project directory. The file does not need to exist yet.
-    4. Select the UART ROM download mode in "Security features -> UART ROM download mode". By default the UART ROM download mode has been kept enabled in order to prevent permanently disabling it in the development phase, this option is a potentially insecure option. It is recommended to disable the UART download mode for better security.
+    3. Specify the path to secure boot signing key, relative to the project directory.
+
+    4. Select the desired UART ROM download mode in "UART ROM download mode". By default the UART ROM download mode has been kept enabled in order to prevent permanently disabling it in the development phase, this option is a potentially insecure option. It is recommended to disable the UART download mode for better security.
 
 .. only:: esp32s2 or esp32c3
 
     2. The "Secure Boot V2" option will be selected and the "App Signing Scheme" would be set to RSA by default.
 
-    3. Select the number of keys to be used to sign the bootloader binary and chose one of them to sign the application. Specify the secure boot signing key paths for each one of these. The file can be anywhere on your system. A relative path will be evaluated from the project directory. The file does not need to exist yet.
-    4. Select the UART ROM download mode in "Security features -> UART ROM download mode".
+    3. Specify the path to secure boot signing key, relative to the project directory.
+
+    4. Select the desired UART ROM download mode in "UART ROM download mode". By default, it is set to "Permanently switch to Secure mode" which is generally recommended. For production devices, the most secure option is to set it to "Permanently disabled".
 
 5. Set other menuconfig options (as desired). Pay particular attention to the "Bootloader Config" options, as you can only flash the bootloader once. Then exit menuconfig and save your configuration.
 

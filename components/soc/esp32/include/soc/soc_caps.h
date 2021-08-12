@@ -136,12 +136,11 @@
 /*-------------------------- I2S CAPS ----------------------------------------*/
 // ESP32 have 2 I2S
 #define SOC_I2S_NUM                 (2)
-
-#define SOC_I2S_SUPPORTS_PDM        (1) // ESP32 support PDM
+#define SOC_I2S_SUPPORTS_PDM_TX     (1)
+#define SOC_I2S_SUPPORTS_PDM_RX     (1)
 #define SOC_I2S_SUPPORTS_ADC_DAC    (1) // ESP32 support ADC and DAC
 
-#define SOC_I2S_MAX_BUFFER_SIZE     (4 * 1024 * 1024) //the maximum RAM can be allocated
-
+#define SOC_I2S_SUPPORTS_APLL       (1)// ESP32 support APLL
 #define SOC_I2S_APLL_MIN_FREQ       (250000000)
 #define SOC_I2S_APLL_MAX_FREQ       (500000000)
 #define SOC_I2S_APLL_MIN_RATE       (10675) //in Hz, I2S Clock rate limited by hardware
@@ -158,10 +157,11 @@
 #define SOC_MCPWM_OPERATORS_PER_GROUP        (3)    ///< The number of operators that each group has
 #define SOC_MCPWM_COMPARATORS_PER_OPERATOR   (2)    ///< The number of comparators that each operator has
 #define SOC_MCPWM_GENERATORS_PER_OPERATOR    (2)    ///< The number of generators that each operator has
-#define SOC_MCPWM_FAULT_DETECTORS_PER_GROUP  (3)    ///< The number of fault signal detectors that each group has
+#define SOC_MCPWM_TRIGGERS_PER_OPERATOR      (2)    ///< The number of triggers that each operator has
+#define SOC_MCPWM_GPIO_FAULTS_PER_GROUP      (3)    ///< The number of GPIO fault signals that each group has
 #define SOC_MCPWM_CAPTURE_TIMERS_PER_GROUP   (1)    ///< The number of capture timers that each group has
 #define SOC_MCPWM_CAPTURE_CHANNELS_PER_TIMER (3)    ///< The number of capture channels that each capture timer has
-#define SOC_MCPWM_EXT_SYNCERS_PER_GROUP      (3)    ///< The number of external syncers that each group has
+#define SOC_MCPWM_GPIO_SYNCHROS_PER_GROUP    (3)    ///< The number of GPIO synchros that each group has
 #define SOC_MCPWM_BASE_CLK_HZ       (160000000ULL)  ///< Base Clock frequency of 160MHz
 
 /*-------------------------- MPU CAPS ----------------------------------------*/
@@ -292,3 +292,6 @@
  */
 #define SOC_SDMMC_USE_IOMUX  1
 #define SOC_SDMMC_NUM_SLOTS  2
+
+/*------------------------------ BLE --------------------------------------------*/
+#define SOC_BLE_DONT_UPDATE_OWN_RPA  (1)
