@@ -21,7 +21,9 @@
 
 #pragma once
 #include <stdbool.h>
+#include "hal/misc.h"
 #include "soc/i2s_periph.h"
+#include "soc/i2s_struct.h"
 #include "hal/i2s_types.h"
 
 #ifdef __cplusplus
@@ -43,7 +45,6 @@ typedef struct {
     uint16_t mclk_div; // I2S module clock devider, Fmclk = Fsclk /(mclk_div+b/a)
     uint16_t a;
     uint16_t b;        // The decimal part of module clock devider, the decimal is: b/a
-    uint16_t bck_div;  // The BCK devider, Fbck = Fmclk / bck_div
 } i2s_ll_clk_cal_t;
 
 /**
@@ -187,6 +188,17 @@ static inline void i2s_ll_rx_clk_set_src(i2s_dev_t *hw, i2s_clock_src_t src)
 }
 
 /**
+ * @brief Set I2S tx bck div num
+ *
+ * @param hw Peripheral I2S hardware instance address.
+ * @param val value to set tx bck div num
+ */
+static inline void i2s_ll_tx_set_bck_div_num(i2s_dev_t *hw, uint32_t val)
+{
+    hw->tx_conf1.tx_bck_div_num = val - 1;
+}
+
+/**
  * @brief Configure I2S TX clock devider
  *
  * @param hw Peripheral I2S hardware instance address.
@@ -211,8 +223,18 @@ static inline void i2s_ll_tx_set_clk(i2s_dev_t *hw, i2s_ll_clk_cal_t *set)
             hw->tx_clkm_div_conf.tx_clkm_div_yn1 = 0;
         }
     }
-    hw->tx_clkm_conf.tx_clkm_div_num = set->mclk_div;
-    hw->tx_conf1.tx_bck_div_num = set->bck_div - 1;
+    HAL_FORCE_MODIFY_U32_REG_FIELD(hw->tx_clkm_conf, tx_clkm_div_num, set->mclk_div);
+}
+
+/**
+ * @brief Set I2S rx bck div num
+ *
+ * @param hw Peripheral I2S hardware instance address.
+ * @param val value to set rx bck div num
+ */
+static inline void i2s_ll_rx_set_bck_div_num(i2s_dev_t *hw, uint32_t val)
+{
+    hw->rx_conf1.rx_bck_div_num = val - 1;
 }
 
 /**
@@ -240,8 +262,7 @@ static inline void i2s_ll_rx_set_clk(i2s_dev_t *hw, i2s_ll_clk_cal_t *set)
             hw->rx_clkm_div_conf.rx_clkm_div_yn1 = 0;
         }
     }
-    hw->rx_clkm_conf.rx_clkm_div_num = set->mclk_div;
-    hw->rx_conf1.rx_bck_div_num = set->bck_div - 1;
+    HAL_FORCE_MODIFY_U32_REG_FIELD(hw->rx_clkm_conf, rx_clkm_div_num, set->mclk_div);
 }
 
 /**
@@ -536,7 +557,7 @@ static inline uint32_t i2s_ll_tx_get_pdm_fs(i2s_dev_t *hw)
  */
 static inline void i2s_ll_tx_set_pdm_prescale(i2s_dev_t *hw, bool prescale)
 {
-    hw->tx_pcm2pdm_conf.tx_prescale = prescale;
+    HAL_FORCE_MODIFY_U32_REG_FIELD(hw->tx_pcm2pdm_conf, tx_prescale, prescale);
 }
 
 /**

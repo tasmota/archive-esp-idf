@@ -38,6 +38,18 @@
 #include "task.h"
 #include "stream_buffer.h"
 
+#ifdef ESP_PLATFORM
+#define taskCRITICAL_MUX &pxStreamBuffer->xStreamBufferMux
+#undef taskENTER_CRITICAL
+#undef taskEXIT_CRITICAL
+#undef taskENTER_CRITICAL_ISR
+#undef taskEXIT_CRITICAL_ISR
+#define taskENTER_CRITICAL( )     portENTER_CRITICAL( taskCRITICAL_MUX )
+#define taskEXIT_CRITICAL( )            portEXIT_CRITICAL( taskCRITICAL_MUX )
+#define taskENTER_CRITICAL_ISR( )     portENTER_CRITICAL_ISR( taskCRITICAL_MUX )
+#define taskEXIT_CRITICAL_ISR( )        portEXIT_CRITICAL_ISR( taskCRITICAL_MUX )
+#endif
+
 #if ( configUSE_TASK_NOTIFICATIONS != 1 )
     #error configUSE_TASK_NOTIFICATIONS must be set to 1 to build stream_buffer.c
 #endif
@@ -54,7 +66,7 @@
 /*lint -save -e9026 Function like macros allowed and needed here so they can be overridden. */
 #ifndef sbRECEIVE_COMPLETED
     #define sbRECEIVE_COMPLETED( pxStreamBuffer )                         \
-    taskENTER_CRITICAL( &pxStreamBuffer->xStreamBufferMux );              \
+    taskENTER_CRITICAL();                                                 \
     {                                                                     \
         if( ( pxStreamBuffer )->xTaskWaitingToSend != NULL )              \
         {                                                                 \
@@ -64,7 +76,7 @@
             ( pxStreamBuffer )->xTaskWaitingToSend = NULL;                \
         }                                                                 \
     }                                                                     \
-    taskEXIT_CRITICAL( &pxStreamBuffer->xStreamBufferMux );
+    taskEXIT_CRITICAL();
 #endif /* sbRECEIVE_COMPLETED */
 
 #ifndef sbRECEIVE_COMPLETED_FROM_ISR
@@ -93,7 +105,7 @@
  * that uses task notifications. */
 #ifndef sbSEND_COMPLETED
     #define sbSEND_COMPLETED( pxStreamBuffer )                               \
-    taskENTER_CRITICAL( &pxStreamBuffer->xStreamBufferMux );                 \
+    taskENTER_CRITICAL();                                                    \
     {                                                                        \
         if( ( pxStreamBuffer )->xTaskWaitingToReceive != NULL )              \
         {                                                                    \
@@ -103,13 +115,13 @@
             ( pxStreamBuffer )->xTaskWaitingToReceive = NULL;                \
         }                                                                    \
     }                                                                        \
-    taskEXIT_CRITICAL( &pxStreamBuffer->xStreamBufferMux );
+    taskEXIT_CRITICAL();
 #endif /* sbSEND_COMPLETED */
 
 #ifndef sbSEND_COMPLETE_FROM_ISR
     #define sbSEND_COMPLETE_FROM_ISR( pxStreamBuffer, pxHigherPriorityTaskWoken )       \
     {                                                                                   \
-    UBaseType_t uxSavedInterruptStatus;                                                 \
+        UBaseType_t uxSavedInterruptStatus;                                             \
                                                                                         \
         uxSavedInterruptStatus = ( UBaseType_t ) portSET_INTERRUPT_MASK_FROM_ISR();     \
         {                                                                               \
@@ -166,7 +178,7 @@ static size_t prvBytesInBuffer( const StreamBuffer_t * const pxStreamBuffer ) PR
  * no data is written into the buffer).
  */
 static size_t prvWriteBytesToBuffer( StreamBuffer_t * const pxStreamBuffer,
-                                     const uint8_t *pucData,
+                                     const uint8_t * pucData,
                                      size_t xCount ) PRIVILEGED_FUNCTION;
 
 /*
@@ -268,6 +280,7 @@ static void prvInitialiseNewStreamBuffer( StreamBuffer_t * const pxStreamBuffer,
         {
             pucAllocatedMemory = NULL;
         }
+
 
         if( pucAllocatedMemory != NULL )
         {
@@ -421,7 +434,7 @@ BaseType_t xStreamBufferReset( StreamBufferHandle_t xStreamBuffer )
     #endif
 
     /* Can only reset a message buffer if there are no tasks blocked on it. */
-    taskENTER_CRITICAL( &pxStreamBuffer->xStreamBufferMux );
+    taskENTER_CRITICAL();
     {
         if( pxStreamBuffer->xTaskWaitingToReceive == NULL )
         {
@@ -444,7 +457,7 @@ BaseType_t xStreamBufferReset( StreamBufferHandle_t xStreamBuffer )
             }
         }
     }
-    taskEXIT_CRITICAL( &pxStreamBuffer->xStreamBufferMux );
+    taskEXIT_CRITICAL();
 
     return xReturn;
 }
@@ -553,7 +566,7 @@ size_t xStreamBufferSend( StreamBufferHandle_t xStreamBuffer,
         {
             /* Wait until the required number of bytes are free in the message
              * buffer. */
-            taskENTER_CRITICAL( &pxStreamBuffer->xStreamBufferMux );
+            taskENTER_CRITICAL();
             {
                 xSpace = xStreamBufferSpacesAvailable( pxStreamBuffer );
 
@@ -568,11 +581,11 @@ size_t xStreamBufferSend( StreamBufferHandle_t xStreamBuffer,
                 }
                 else
                 {
-                    taskEXIT_CRITICAL( &pxStreamBuffer->xStreamBufferMux );
+                    taskEXIT_CRITICAL();
                     break;
                 }
             }
-            taskEXIT_CRITICAL( &pxStreamBuffer->xStreamBufferMux );
+            taskEXIT_CRITICAL();
 
             traceBLOCKING_ON_STREAM_BUFFER_SEND( xStreamBuffer );
             ( void ) xTaskNotifyWait( ( uint32_t ) 0, ( uint32_t ) 0, NULL, xTicksToWait );
@@ -711,7 +724,7 @@ static size_t prvWriteMessageToBuffer( StreamBuffer_t * const pxStreamBuffer,
     if( xShouldWrite != pdFALSE )
     {
         /* Writes the data itself. */
-        xReturn = prvWriteBytesToBuffer( pxStreamBuffer, ( const uint8_t * ) pvTxData, xDataLengthBytes ); /*lint !e9079 Storage buffer is implemented as uint8_t for ease of sizing, alighment and access. */
+        xReturn = prvWriteBytesToBuffer( pxStreamBuffer, ( const uint8_t * ) pvTxData, xDataLengthBytes ); /*lint !e9079 Storage buffer is implemented as uint8_t for ease of sizing, alignment and access. */
     }
     else
     {
@@ -751,7 +764,7 @@ size_t xStreamBufferReceive( StreamBufferHandle_t xStreamBuffer,
     {
         /* Checking if there is data and clearing the notification state must be
          * performed atomically. */
-        taskENTER_CRITICAL( &pxStreamBuffer->xStreamBufferMux );
+        taskENTER_CRITICAL();
         {
             xBytesAvailable = prvBytesInBuffer( pxStreamBuffer );
 
@@ -774,7 +787,7 @@ size_t xStreamBufferReceive( StreamBufferHandle_t xStreamBuffer,
                 mtCOVERAGE_TEST_MARKER();
             }
         }
-        taskEXIT_CRITICAL( &pxStreamBuffer->xStreamBufferMux );
+        taskEXIT_CRITICAL();
 
         if( xBytesAvailable <= xBytesToStoreMessageLength )
         {
@@ -1118,7 +1131,7 @@ static size_t prvWriteBytesToBuffer( StreamBuffer_t * const pxStreamBuffer,
 
     /* Write as many bytes as can be written in the first write. */
     configASSERT( ( xNextHead + xFirstLength ) <= pxStreamBuffer->xLength );
-    ( void ) memcpy( ( void* ) ( &( pxStreamBuffer->pucBuffer[ xNextHead ] ) ), ( const void * ) pucData, xFirstLength ); /*lint !e9087 memcpy() requires void *. */
+    ( void ) memcpy( ( void * ) ( &( pxStreamBuffer->pucBuffer[ xNextHead ] ) ), ( const void * ) pucData, xFirstLength ); /*lint !e9087 memcpy() requires void *. */
 
     /* If the number of bytes written was less than the number that could be
      * written in the first write... */

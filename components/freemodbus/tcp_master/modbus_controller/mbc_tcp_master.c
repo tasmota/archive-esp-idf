@@ -33,6 +33,8 @@
 #include "mbc_tcp_master.h"         // for tcp master create function and types
 #include "port_tcp_master.h"        // for tcp master port defines and types
 
+#if MB_MASTER_TCP_ENABLED
+
 /*-----------------------Master mode use these variables----------------------*/
 
 // The response time is average processing time + data transmission
@@ -431,8 +433,9 @@ static esp_err_t mbc_tcp_master_get_parameter(uint16_t cid, char* name, uint8_t*
         // Set the type of parameter found in the table
         *type = reg_info.param_type;
     } else {
-        ESP_LOGD(MB_MASTER_TAG, "%s: The cid(%u) not found in the data dictionary.",
+        ESP_LOGE(MB_MASTER_TAG, "%s: The cid(%u) not found in the data dictionary.",
                                                     __FUNCTION__, reg_info.cid);
+        error = ESP_ERR_INVALID_ARG;
     }
     return error;
 }
@@ -469,6 +472,7 @@ static esp_err_t mbc_tcp_master_set_parameter(uint16_t cid, char* name, uint8_t*
     } else {
         ESP_LOGE(MB_MASTER_TAG, "%s: The requested cid(%u) not found in the data dictionary.",
                                     __FUNCTION__, reg_info.cid);
+        error = ESP_ERR_INVALID_ARG;
     }
     return error;
 }
@@ -714,3 +718,5 @@ esp_err_t mbc_tcp_master_create(void** handler)
 
     return ESP_OK;
 }
+
+#endif //#if MB_MASTER_TCP_ENABLED

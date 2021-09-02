@@ -40,6 +40,18 @@
     #include "croutine.h"
 #endif
 
+#ifdef ESP_PLATFORM
+#define taskCRITICAL_MUX &((Queue_t *)pxQueue)->mux
+#undef taskENTER_CRITICAL
+#undef taskEXIT_CRITICAL
+#undef taskENTER_CRITICAL_ISR
+#undef taskEXIT_CRITICAL_ISR
+#define taskENTER_CRITICAL( )     portENTER_CRITICAL( taskCRITICAL_MUX )
+#define taskEXIT_CRITICAL( )            portEXIT_CRITICAL( taskCRITICAL_MUX )
+#define taskENTER_CRITICAL_ISR( )     portENTER_CRITICAL_ISR( taskCRITICAL_MUX )
+#define taskEXIT_CRITICAL_ISR( )        portEXIT_CRITICAL_ISR( taskCRITICAL_MUX )
+#endif
+
 /* Lint e9021, e961 and e750 are suppressed as a MISRA exception justified
  * because the MPU ports require MPU_WRAPPERS_INCLUDED_FROM_API_FILE to be defined
  * for the header files above, but not in this file, in order to generate the
@@ -92,7 +104,7 @@ typedef struct SemaphoreData
 /*
  * Definition of the queue used by the scheduler.
  * Items are queued by copy, not reference.  See the following link for the
- * rationale: https://www.freertos.org/Embedded-RTOS-Queues.html
+ * rationale: https://www.FreeRTOS.org/Embedded-RTOS-Queues.html
  */
 typedef struct QueueDefinition /* The old naming convention is used to prevent breaking kernel aware debuggers. */
 {
@@ -127,9 +139,9 @@ typedef struct QueueDefinition /* The old naming convention is used to prevent b
         UBaseType_t uxQueueNumber;
         uint8_t ucQueueType;
     #endif
-
+#ifdef ESP_PLATFORM
     portMUX_TYPE mux;       //Mutex required due to SMP
-
+#endif // ESP_PLATFORM
 } xQUEUE;
 
 /* The old xQUEUE name is maintained above then typedefed to the new Queue_t
@@ -162,10 +174,10 @@ typedef xQUEUE Queue_t;
  * The pcQueueName member of a structure being NULL is indicative of the
  * array position being vacant. */
     PRIVILEGED_DATA QueueRegistryItem_t xQueueRegistry[ configQUEUE_REGISTRY_SIZE ];
-
+#ifdef ESP_PLATFORM
     //Need to add queue registry mutex to protect against simultaneous access
     static portMUX_TYPE queue_registry_spinlock = portMUX_INITIALIZER_UNLOCKED;
-
+#endif // ESP_PLATFORM
 #endif /* configQUEUE_REGISTRY_SIZE */
 
 /*
@@ -252,7 +264,7 @@ static void prvInitialiseNewQueue( const UBaseType_t uxQueueLength,
  * accessing the queue event lists.
  */
 #define prvLockQueue( pxQueue )                            \
-    taskENTER_CRITICAL( &pxQueue->mux );                   \
+    taskENTER_CRITICAL();                   \
     {                                                      \
         if( ( pxQueue )->cRxLock == queueUNLOCKED )        \
         {                                                  \
@@ -263,7 +275,7 @@ static void prvInitialiseNewQueue( const UBaseType_t uxQueueLength,
             ( pxQueue )->cTxLock = queueLOCKED_UNMODIFIED; \
         }                                                  \
     }                                                      \
-    taskEXIT_CRITICAL( &pxQueue->mux )
+    taskEXIT_CRITICAL()
 /*-----------------------------------------------------------*/
 
 BaseType_t xQueueGenericReset( QueueHandle_t xQueue,
@@ -273,12 +285,14 @@ BaseType_t xQueueGenericReset( QueueHandle_t xQueue,
 
     configASSERT( pxQueue );
 
+#ifdef ESP_PLATFORM
     if( xNewQueue == pdTRUE )
     {
         vPortCPUInitializeMutex(&pxQueue->mux);
     }
+#endif // ESP_PLATFORM
 
-    taskENTER_CRITICAL( &pxQueue->mux );
+    taskENTER_CRITICAL();
     {
         pxQueue->u.xQueue.pcTail = pxQueue->pcHead + ( pxQueue->uxLength * pxQueue->uxItemSize ); /*lint !e9016 Pointer arithmetic allowed on char types, especially when it assists conveying intent. */
         pxQueue->uxMessagesWaiting = ( UBaseType_t ) 0U;
@@ -317,7 +331,7 @@ BaseType_t xQueueGenericReset( QueueHandle_t xQueue,
             vListInitialise( &( pxQueue->xTasksWaitingToReceive ) );
         }
     }
-    taskEXIT_CRITICAL( &pxQueue->mux);
+    taskEXIT_CRITICAL();
 
     /* A value is returned for calling semantic consistency with previous
      * versions. */
@@ -333,7 +347,7 @@ BaseType_t xQueueGenericReset( QueueHandle_t xQueue,
                                              StaticQueue_t * pxStaticQueue,
                                              const uint8_t ucQueueType )
     {
-    Queue_t * pxNewQueue;
+        Queue_t * pxNewQueue;
 
         configASSERT( uxQueueLength > ( UBaseType_t ) 0 );
 
@@ -416,7 +430,7 @@ BaseType_t xQueueGenericReset( QueueHandle_t xQueue,
         configASSERT( ( uxItemSize == 0 ) || ( uxQueueLength == ( xQueueSizeInBytes / uxItemSize ) ) );
 
         /* Check for addition overflow. */
-        configASSERT( ( sizeof( Queue_t ) + xQueueSizeInBytes ) > xQueueSizeInBytes );
+        configASSERT( ( sizeof( Queue_t ) + xQueueSizeInBytes ) >  xQueueSizeInBytes );
 
         /* Allocate the queue and storage area.  Justification for MISRA
          * deviation as follows:  pvPortMalloc() always ensures returned memory
@@ -520,8 +534,9 @@ static void prvInitialiseNewQueue( const UBaseType_t uxQueueLength,
 
             /* In case this is a recursive mutex. */
             pxNewQueue->u.xSemaphore.uxRecursiveCallCount = 0;
+#ifdef ESP_PLATFORM
             vPortCPUInitializeMutex(&pxNewQueue->mux);
-
+#endif // ESP_PLATFORM
             traceCREATE_MUTEX( pxNewQueue );
 
             /* Start with the semaphore in the expected state. */
@@ -585,7 +600,10 @@ static void prvInitialiseNewQueue( const UBaseType_t uxQueueLength,
          * calling task is the mutex holder, but not a good way of determining the
          * identity of the mutex holder, as the holder may change between the
          * following critical section exiting and the function returning. */
-        taskENTER_CRITICAL( &pxSemaphore->mux );
+#ifdef ESP_PLATFORM
+        Queue_t * const pxQueue = (Queue_t *)pxSemaphore;
+#endif
+        taskENTER_CRITICAL();
         {
             if( pxSemaphore->uxQueueType == queueQUEUE_IS_MUTEX )
             {
@@ -596,7 +614,7 @@ static void prvInitialiseNewQueue( const UBaseType_t uxQueueLength,
                 pxReturn = NULL;
             }
         }
-        taskEXIT_CRITICAL( &pxSemaphore->mux );
+        taskEXIT_CRITICAL();
 
         return pxReturn;
     } /*lint !e818 xSemaphore cannot be a pointer to const because it is a typedef. */
@@ -816,7 +834,7 @@ BaseType_t xQueueGenericSend( QueueHandle_t xQueue,
      * interest of execution time efficiency. */
     for( ; ; )
     {
-        taskENTER_CRITICAL( &pxQueue->mux );
+        taskENTER_CRITICAL();
         {
             /* Is there room on the queue now?  The running task must be the
              * highest priority task wanting to access the queue.  If the head item
@@ -922,7 +940,7 @@ BaseType_t xQueueGenericSend( QueueHandle_t xQueue,
                     }
                 #endif /* configUSE_QUEUE_SETS */
 
-                taskEXIT_CRITICAL( &pxQueue->mux );
+                taskEXIT_CRITICAL();
                 return pdPASS;
             }
             else
@@ -931,7 +949,7 @@ BaseType_t xQueueGenericSend( QueueHandle_t xQueue,
                 {
                     /* The queue was full and no block time is specified (or
                      * the block time has expired) so leave now. */
-                    taskEXIT_CRITICAL( &pxQueue->mux);
+                    taskEXIT_CRITICAL();
 
                     /* Return to the original privilege level before exiting
                      * the function. */
@@ -952,12 +970,12 @@ BaseType_t xQueueGenericSend( QueueHandle_t xQueue,
                 }
             }
         }
-        taskEXIT_CRITICAL( &pxQueue->mux);
+        taskEXIT_CRITICAL();
 
         /* Interrupts and other tasks can send to and receive from the queue
          * now the critical section has been exited. */
 
-        taskENTER_CRITICAL( &pxQueue->mux);
+        taskENTER_CRITICAL();
         prvLockQueue( pxQueue );
 
         /* Update the timeout state to see if it has expired yet. */
@@ -969,7 +987,7 @@ BaseType_t xQueueGenericSend( QueueHandle_t xQueue,
                 vTaskPlaceOnEventList( &( pxQueue->xTasksWaitingToSend ), xTicksToWait );
 
                 /* Unlocking the queue means queue events can effect the
-                 * event list. It is possible that interrupts occurring now
+                 * event list.  It is possible that interrupts occurring now
                  * remove this task from the event list again - but as the
                  * scheduler is suspended the task will go onto the pending
                  * ready list instead of the actual ready list. */
@@ -980,7 +998,7 @@ BaseType_t xQueueGenericSend( QueueHandle_t xQueue,
                  * task is already in the ready list before it yields - in which
                  * case the yield will not cause a context switch unless there
                  * is also a higher priority task in the pending ready list. */
-                taskEXIT_CRITICAL( &pxQueue->mux );
+                taskEXIT_CRITICAL();
                 portYIELD_WITHIN_API();
 
             }
@@ -988,14 +1006,14 @@ BaseType_t xQueueGenericSend( QueueHandle_t xQueue,
             {
                 /* Try again. */
                 prvUnlockQueue( pxQueue );
-                taskEXIT_CRITICAL( &pxQueue->mux );
+                taskEXIT_CRITICAL();
             }
         }
         else
         {
             /* The timeout has expired. */
             prvUnlockQueue( pxQueue );
-            taskEXIT_CRITICAL( &pxQueue->mux );
+            taskEXIT_CRITICAL();
 
             traceQUEUE_SEND_FAILED( pxQueue );
             return errQUEUE_FULL;
@@ -1030,7 +1048,7 @@ BaseType_t xQueueGenericSendFromISR( QueueHandle_t xQueue,
      * system call interrupt priority.  FreeRTOS maintains a separate interrupt
      * safe API to ensure interrupt entry is as fast and as simple as possible.
      * More information (albeit Cortex-M specific) is provided on the following
-     * link: https://www.freertos.org/RTOS-Cortex-M3-M4.html */
+     * link: https://www.FreeRTOS.org/RTOS-Cortex-M3-M4.html */
     portASSERT_IF_INTERRUPT_PRIORITY_INVALID();
 
     /* Similar to xQueueGenericSend, except without blocking if there is no room
@@ -1040,7 +1058,7 @@ BaseType_t xQueueGenericSendFromISR( QueueHandle_t xQueue,
      * post). */
     uxSavedInterruptStatus = portSET_INTERRUPT_MASK_FROM_ISR();
     {
-        taskENTER_CRITICAL_ISR(&pxQueue->mux);
+        taskENTER_CRITICAL_ISR();
 
         if( ( pxQueue->uxMessagesWaiting < pxQueue->uxLength ) || ( xCopyPosition == queueOVERWRITE ) )
         {
@@ -1154,7 +1172,7 @@ BaseType_t xQueueGenericSendFromISR( QueueHandle_t xQueue,
             xReturn = errQUEUE_FULL;
         }
 
-        taskEXIT_CRITICAL_ISR( &pxQueue->mux );
+        taskEXIT_CRITICAL_ISR();
     }
     portCLEAR_INTERRUPT_MASK_FROM_ISR( uxSavedInterruptStatus );
 
@@ -1199,12 +1217,12 @@ BaseType_t xQueueGiveFromISR( QueueHandle_t xQueue,
      * system call interrupt priority.  FreeRTOS maintains a separate interrupt
      * safe API to ensure interrupt entry is as fast and as simple as possible.
      * More information (albeit Cortex-M specific) is provided on the following
-     * link: https://www.freertos.org/RTOS-Cortex-M3-M4.html */
+     * link: https://www.FreeRTOS.org/RTOS-Cortex-M3-M4.html */
     portASSERT_IF_INTERRUPT_PRIORITY_INVALID();
 
     uxSavedInterruptStatus = portSET_INTERRUPT_MASK_FROM_ISR();
     {
-        taskENTER_CRITICAL_ISR(&pxQueue->mux);
+        taskENTER_CRITICAL_ISR();
 
         const UBaseType_t uxMessagesWaiting = pxQueue->uxMessagesWaiting;
 
@@ -1323,7 +1341,7 @@ BaseType_t xQueueGiveFromISR( QueueHandle_t xQueue,
             traceQUEUE_GIVE_FROM_ISR_FAILED( pxQueue );
             xReturn = errQUEUE_FULL;
         }
-        taskEXIT_CRITICAL_ISR(&pxQueue->mux);
+        taskEXIT_CRITICAL_ISR();
     }
     portCLEAR_INTERRUPT_MASK_FROM_ISR( uxSavedInterruptStatus );
 
@@ -1358,7 +1376,7 @@ BaseType_t xQueueReceive( QueueHandle_t xQueue,
      * interest of execution time efficiency. */
     for( ; ; )
     {
-        taskENTER_CRITICAL( &pxQueue->mux );
+        taskENTER_CRITICAL();
         {
             const UBaseType_t uxMessagesWaiting = pxQueue->uxMessagesWaiting;
 
@@ -1390,7 +1408,7 @@ BaseType_t xQueueReceive( QueueHandle_t xQueue,
                     mtCOVERAGE_TEST_MARKER();
                 }
 
-                taskEXIT_CRITICAL( &pxQueue->mux);
+                taskEXIT_CRITICAL();
                 return pdPASS;
             }
             else
@@ -1399,7 +1417,7 @@ BaseType_t xQueueReceive( QueueHandle_t xQueue,
                 {
                     /* The queue was empty and no block time is specified (or
                      * the block time has expired) so leave now. */
-                    taskEXIT_CRITICAL( &pxQueue->mux );
+                    taskEXIT_CRITICAL();
                     traceQUEUE_RECEIVE_FAILED( pxQueue );
                     return errQUEUE_EMPTY;
                 }
@@ -1417,12 +1435,12 @@ BaseType_t xQueueReceive( QueueHandle_t xQueue,
                 }
             }
         }
-        taskEXIT_CRITICAL( &pxQueue->mux );
+        taskEXIT_CRITICAL();
 
         /* Interrupts and other tasks can send to and receive from the queue
          * now the critical section has been exited. */
 
-        taskENTER_CRITICAL( &pxQueue->mux);
+        taskENTER_CRITICAL();
         prvLockQueue( pxQueue );
 
         /* Update the timeout state to see if it has expired yet. */
@@ -1435,7 +1453,7 @@ BaseType_t xQueueReceive( QueueHandle_t xQueue,
                 traceBLOCKING_ON_QUEUE_RECEIVE( pxQueue );
                 vTaskPlaceOnEventList( &( pxQueue->xTasksWaitingToReceive ), xTicksToWait );
                 prvUnlockQueue( pxQueue );
-                taskEXIT_CRITICAL( &pxQueue->mux);
+                taskEXIT_CRITICAL();
                 portYIELD_WITHIN_API();
             }
             else
@@ -1443,7 +1461,7 @@ BaseType_t xQueueReceive( QueueHandle_t xQueue,
                 /* The queue contains data again.  Loop back to try and read the
                  * data. */
                 prvUnlockQueue( pxQueue );
-                taskEXIT_CRITICAL( &pxQueue->mux);
+                taskEXIT_CRITICAL();
             }
         }
         else
@@ -1451,7 +1469,7 @@ BaseType_t xQueueReceive( QueueHandle_t xQueue,
             /* Timed out.  If there is no data in the queue exit, otherwise loop
              * back and attempt to read the data. */
             prvUnlockQueue( pxQueue );
-            taskEXIT_CRITICAL( &pxQueue->mux);
+            taskEXIT_CRITICAL();
 
             if( prvIsQueueEmpty( pxQueue ) != pdFALSE )
             {
@@ -1497,7 +1515,7 @@ BaseType_t xQueueSemaphoreTake( QueueHandle_t xQueue,
      * of execution time efficiency. */
     for( ; ; )
     {
-        taskENTER_CRITICAL( &pxQueue->mux );
+        taskENTER_CRITICAL();
         {
             /* Semaphores are queues with an item size of 0, and where the
              * number of messages in the queue is the semaphore's count value. */
@@ -1546,7 +1564,7 @@ BaseType_t xQueueSemaphoreTake( QueueHandle_t xQueue,
                     mtCOVERAGE_TEST_MARKER();
                 }
 
-                taskEXIT_CRITICAL( &pxQueue->mux );
+                taskEXIT_CRITICAL();
                 return pdPASS;
             }
             else
@@ -1564,7 +1582,7 @@ BaseType_t xQueueSemaphoreTake( QueueHandle_t xQueue,
 
                     /* The semaphore count was 0 and no block time is specified
                      * (or the block time has expired) so exit now. */
-                    taskEXIT_CRITICAL( &pxQueue->mux );
+                    taskEXIT_CRITICAL();
                     traceQUEUE_RECEIVE_FAILED( pxQueue );
                     return errQUEUE_EMPTY;
                 }
@@ -1582,12 +1600,12 @@ BaseType_t xQueueSemaphoreTake( QueueHandle_t xQueue,
                 }
             }
         }
-        taskEXIT_CRITICAL( &pxQueue->mux );
+        taskEXIT_CRITICAL();
 
         /* Interrupts and other tasks can give to and take from the semaphore
          * now the critical section has been exited. */
 
-        taskENTER_CRITICAL( &pxQueue->mux );
+        taskENTER_CRITICAL();
         prvLockQueue( pxQueue );
 
         /* Update the timeout state to see if it has expired yet. */
@@ -1605,11 +1623,11 @@ BaseType_t xQueueSemaphoreTake( QueueHandle_t xQueue,
                     {
                         if( pxQueue->uxQueueType == queueQUEUE_IS_MUTEX )
                         {
-                            taskENTER_CRITICAL( &pxQueue->mux);
+                            taskENTER_CRITICAL();
                             {
                                 xInheritanceOccurred = xTaskPriorityInherit( pxQueue->u.xSemaphore.xMutexHolder );
                             }
-                             taskEXIT_CRITICAL( &pxQueue->mux);
+                             taskEXIT_CRITICAL();
                         }
                         else
                         {
@@ -1620,7 +1638,7 @@ BaseType_t xQueueSemaphoreTake( QueueHandle_t xQueue,
 
                 vTaskPlaceOnEventList( &( pxQueue->xTasksWaitingToReceive ), xTicksToWait );
                 prvUnlockQueue( pxQueue );
-                taskEXIT_CRITICAL( &pxQueue->mux);
+                taskEXIT_CRITICAL();
                 portYIELD_WITHIN_API();
             }
             else
@@ -1628,14 +1646,14 @@ BaseType_t xQueueSemaphoreTake( QueueHandle_t xQueue,
                 /* There was no timeout and the semaphore count was not 0, so
                  * attempt to take the semaphore again. */
                 prvUnlockQueue( pxQueue );
-                taskEXIT_CRITICAL( &pxQueue->mux );
+                taskEXIT_CRITICAL();
             }
         }
         else
         {
             /* Timed out. */
             prvUnlockQueue( pxQueue );
-            taskEXIT_CRITICAL( &pxQueue->mux);
+            taskEXIT_CRITICAL();
 
             /* If the semaphore count is 0 exit now as the timeout has
              * expired.  Otherwise return to attempt to take the semaphore that is
@@ -1650,7 +1668,7 @@ BaseType_t xQueueSemaphoreTake( QueueHandle_t xQueue,
                          * test the mutex type again to check it is actually a mutex. */
                         if( xInheritanceOccurred != pdFALSE )
                         {
-                            taskENTER_CRITICAL( &pxQueue->mux );
+                            taskENTER_CRITICAL();
                             {
                                 UBaseType_t uxHighestWaitingPriority;
 
@@ -1662,7 +1680,7 @@ BaseType_t xQueueSemaphoreTake( QueueHandle_t xQueue,
                                 uxHighestWaitingPriority = prvGetDisinheritPriorityAfterTimeout( pxQueue );
                                 vTaskPriorityDisinheritAfterTimeout( pxQueue->u.xSemaphore.xMutexHolder, uxHighestWaitingPriority );
                             }
-                            taskEXIT_CRITICAL( &pxQueue->mux );
+                            taskEXIT_CRITICAL();
                         }
                     }
                 #endif /* configUSE_MUTEXES */
@@ -1707,7 +1725,7 @@ BaseType_t xQueuePeek( QueueHandle_t xQueue,
      * interest of execution time efficiency. */
     for( ; ; )
     {
-        taskENTER_CRITICAL( &pxQueue->mux );
+        taskENTER_CRITICAL();
         {
             const UBaseType_t uxMessagesWaiting = pxQueue->uxMessagesWaiting;
 
@@ -1745,7 +1763,7 @@ BaseType_t xQueuePeek( QueueHandle_t xQueue,
                     mtCOVERAGE_TEST_MARKER();
                 }
 
-                taskEXIT_CRITICAL( &pxQueue->mux );
+                taskEXIT_CRITICAL();
                 return pdPASS;
             }
             else
@@ -1754,7 +1772,7 @@ BaseType_t xQueuePeek( QueueHandle_t xQueue,
                 {
                     /* The queue was empty and no block time is specified (or
                      * the block time has expired) so leave now. */
-                     taskEXIT_CRITICAL( &pxQueue->mux );
+                     taskEXIT_CRITICAL();
                     traceQUEUE_PEEK_FAILED( pxQueue );
                     return errQUEUE_EMPTY;
                 }
@@ -1773,12 +1791,12 @@ BaseType_t xQueuePeek( QueueHandle_t xQueue,
                 }
             }
         }
-        taskEXIT_CRITICAL( &pxQueue->mux );
+        taskEXIT_CRITICAL();
 
         /* Interrupts and other tasks can send to and receive from the queue
          * now the critical section has been exited. */
 
-        taskENTER_CRITICAL( &pxQueue->mux );
+        taskENTER_CRITICAL();
         prvLockQueue( pxQueue );
 
         /* Update the timeout state to see if it has expired yet. */
@@ -1791,7 +1809,7 @@ BaseType_t xQueuePeek( QueueHandle_t xQueue,
                 traceBLOCKING_ON_QUEUE_PEEK( pxQueue );
                 vTaskPlaceOnEventList( &( pxQueue->xTasksWaitingToReceive ), xTicksToWait );
                 prvUnlockQueue( pxQueue );
-                taskEXIT_CRITICAL( &pxQueue->mux );
+                taskEXIT_CRITICAL();
                 portYIELD_WITHIN_API();
             }
             else
@@ -1799,7 +1817,7 @@ BaseType_t xQueuePeek( QueueHandle_t xQueue,
                 /* There is data in the queue now, so don't enter the blocked
                  * state, instead return to try and obtain the data. */
                 prvUnlockQueue( pxQueue );
-                taskEXIT_CRITICAL( &pxQueue->mux );
+                taskEXIT_CRITICAL();
             }
         }
         else
@@ -1807,7 +1825,7 @@ BaseType_t xQueuePeek( QueueHandle_t xQueue,
             /* The timeout has expired.  If there is still no data in the queue
              * exit, otherwise go back and try to read the data again. */
             prvUnlockQueue( pxQueue );
-            taskEXIT_CRITICAL( &pxQueue->mux );
+            taskEXIT_CRITICAL();
 
             if( prvIsQueueEmpty( pxQueue ) != pdFALSE )
             {
@@ -1847,12 +1865,12 @@ BaseType_t xQueueReceiveFromISR( QueueHandle_t xQueue,
      * system call interrupt priority.  FreeRTOS maintains a separate interrupt
      * safe API to ensure interrupt entry is as fast and as simple as possible.
      * More information (albeit Cortex-M specific) is provided on the following
-     * link: https://www.freertos.org/RTOS-Cortex-M3-M4.html */
+     * link: https://www.FreeRTOS.org/RTOS-Cortex-M3-M4.html */
     portASSERT_IF_INTERRUPT_PRIORITY_INVALID();
 
     uxSavedInterruptStatus = portSET_INTERRUPT_MASK_FROM_ISR();
     {
-        taskENTER_CRITICAL_ISR(&pxQueue->mux);
+        taskENTER_CRITICAL_ISR();
 
         const UBaseType_t uxMessagesWaiting = pxQueue->uxMessagesWaiting;
 
@@ -1911,7 +1929,7 @@ BaseType_t xQueueReceiveFromISR( QueueHandle_t xQueue,
             xReturn = pdFAIL;
             traceQUEUE_RECEIVE_FROM_ISR_FAILED( pxQueue );
         }
-        taskEXIT_CRITICAL_ISR(&pxQueue->mux);
+        taskEXIT_CRITICAL_ISR();
     }
     portCLEAR_INTERRUPT_MASK_FROM_ISR( uxSavedInterruptStatus );
 
@@ -1944,11 +1962,11 @@ BaseType_t xQueuePeekFromISR( QueueHandle_t xQueue,
      * system call interrupt priority.  FreeRTOS maintains a separate interrupt
      * safe API to ensure interrupt entry is as fast and as simple as possible.
      * More information (albeit Cortex-M specific) is provided on the following
-     * link: https://www.freertos.org/RTOS-Cortex-M3-M4.html */
+     * link: https://www.FreeRTOS.org/RTOS-Cortex-M3-M4.html */
     portASSERT_IF_INTERRUPT_PRIORITY_INVALID();
 
     uxSavedInterruptStatus = portSET_INTERRUPT_MASK_FROM_ISR();
-    taskENTER_CRITICAL_ISR(&pxQueue->mux);
+    taskENTER_CRITICAL_ISR();
     {
         /* Cannot block in an ISR, so check there is data available. */
         if( pxQueue->uxMessagesWaiting > ( UBaseType_t ) 0 )
@@ -1969,7 +1987,7 @@ BaseType_t xQueuePeekFromISR( QueueHandle_t xQueue,
             traceQUEUE_PEEK_FROM_ISR_FAILED( pxQueue );
         }
     }
-    taskEXIT_CRITICAL_ISR(&pxQueue->mux);
+    taskEXIT_CRITICAL_ISR();
     portCLEAR_INTERRUPT_MASK_FROM_ISR( uxSavedInterruptStatus );
 
     return xReturn;
@@ -1983,11 +2001,11 @@ UBaseType_t uxQueueMessagesWaiting( const QueueHandle_t xQueue )
 
     configASSERT( xQueue );
 
-    taskENTER_CRITICAL( &pxQueue->mux );
+    taskENTER_CRITICAL();
     {
         uxReturn = ( ( Queue_t * ) xQueue )->uxMessagesWaiting;
     }
-    taskEXIT_CRITICAL( &pxQueue->mux );
+    taskEXIT_CRITICAL();
 
     return uxReturn;
 } /*lint !e818 Pointer cannot be declared const as xQueue is a typedef not pointer. */
@@ -2000,11 +2018,11 @@ UBaseType_t uxQueueSpacesAvailable( const QueueHandle_t xQueue )
 
     configASSERT( pxQueue );
 
-    taskENTER_CRITICAL( &pxQueue->mux );
+    taskENTER_CRITICAL();
     {
         uxReturn = pxQueue->uxLength - pxQueue->uxMessagesWaiting;
     }
-    taskEXIT_CRITICAL( &pxQueue->mux );
+    taskEXIT_CRITICAL();
 
     return uxReturn;
 } /*lint !e818 Pointer cannot be declared const as xQueue is a typedef not pointer. */
@@ -2234,7 +2252,7 @@ static void prvUnlockQueue( Queue_t * const pxQueue )
      * removed from the queue while the queue was locked.  When a queue is
      * locked items can be added or removed, but the event lists cannot be
      * updated. */
-    taskENTER_CRITICAL( &pxQueue->mux );
+    taskENTER_CRITICAL();
     {
         int8_t cTxLock = pxQueue->cTxLock;
 
@@ -2312,10 +2330,10 @@ static void prvUnlockQueue( Queue_t * const pxQueue )
 
         pxQueue->cTxLock = queueUNLOCKED;
     }
-    taskEXIT_CRITICAL( &pxQueue->mux );
+    taskEXIT_CRITICAL();
 
     /* Do the same for the Rx lock. */
-    taskENTER_CRITICAL( &pxQueue->mux );
+    taskENTER_CRITICAL();
     {
         int8_t cRxLock = pxQueue->cRxLock;
 
@@ -2342,15 +2360,14 @@ static void prvUnlockQueue( Queue_t * const pxQueue )
 
         pxQueue->cRxLock = queueUNLOCKED;
     }
-    taskEXIT_CRITICAL( &pxQueue->mux );
+    taskEXIT_CRITICAL();
 }
 /*-----------------------------------------------------------*/
 
-static BaseType_t prvIsQueueEmpty( const Queue_t *pxQueue )
+static BaseType_t prvIsQueueEmpty( const Queue_t * pxQueue )
 {
     BaseType_t xReturn;
-    Queue_t * pxQ = (Queue_t *)pxQueue;
-    taskENTER_CRITICAL( &pxQ->mux );
+    taskENTER_CRITICAL();
     {
         if( pxQueue->uxMessagesWaiting == ( UBaseType_t ) 0 )
         {
@@ -2361,7 +2378,7 @@ static BaseType_t prvIsQueueEmpty( const Queue_t *pxQueue )
             xReturn = pdFALSE;
         }
     }
-    taskEXIT_CRITICAL( &pxQ->mux );
+    taskEXIT_CRITICAL();
 
     return xReturn;
 }
@@ -2872,8 +2889,11 @@ BaseType_t xQueueIsQueueFullFromISR( const QueueHandle_t xQueue )
                                QueueSetHandle_t xQueueSet )
     {
         BaseType_t xReturn;
+#ifdef ESP_PLATFORM
+        Queue_t * pxQueue = (Queue_t * )xQueueOrSemaphore;
+#endif
 
-        taskENTER_CRITICAL(&(((Queue_t * )xQueueOrSemaphore)->mux));
+        taskENTER_CRITICAL();
         {
             if( ( ( Queue_t * ) xQueueOrSemaphore )->pxQueueSetContainer != NULL )
             {
@@ -2892,7 +2912,7 @@ BaseType_t xQueueIsQueueFullFromISR( const QueueHandle_t xQueue )
                 xReturn = pdPASS;
             }
         }
-        taskEXIT_CRITICAL(&(((Queue_t * )xQueueOrSemaphore)->mux));
+        taskEXIT_CRITICAL();
 
         return xReturn;
     }
@@ -2922,12 +2942,15 @@ BaseType_t xQueueIsQueueFullFromISR( const QueueHandle_t xQueue )
         }
         else
         {
-            taskENTER_CRITICAL(&(pxQueueOrSemaphore->mux));
+#ifdef ESP_PLATFORM
+            Queue_t* pxQueue = (Queue_t*)pxQueueOrSemaphore;
+#endif
+            taskENTER_CRITICAL();
             {
                 /* The queue is no longer contained in the set. */
                 pxQueueOrSemaphore->pxQueueSetContainer = NULL;
             }
-            taskEXIT_CRITICAL(&(pxQueueOrSemaphore->mux));
+            taskEXIT_CRITICAL();
             xReturn = pdPASS;
         }
 
