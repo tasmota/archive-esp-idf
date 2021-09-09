@@ -49,6 +49,7 @@ LEGACY_DOCS = ['api-guides/build-system-legacy.rst',
                'get-started-legacy/**']
 
 USB_DOCS = ['api-reference/peripherals/usb_device.rst',
+            'api-reference/peripherals/usb_host.rst',
             'api-guides/usb-otg-console.rst',
             'api-guides/dfu.rst']
 
@@ -140,7 +141,7 @@ html_context['github_repo'] = 'esp-idf'
 project_slug = 'esp-idf'
 versions_url = 'https://dl.espressif.com/dl/esp-idf/idf_versions.js'
 
-idf_targets = ['esp32', 'esp32s2', 'esp32c3']
+idf_targets = ['esp32', 'esp32s2', 'esp32s3', 'esp32c3']
 languages = ['en', 'zh_CN']
 
 google_analytics_id = os.environ.get('CI_GOOGLE_ANALYTICS_ID', None)

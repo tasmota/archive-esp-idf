@@ -18,7 +18,7 @@
 #define SOC_USB_OTG_SUPPORTED           1
 #define SOC_RTC_SLOW_MEM_SUPPORTED      1
 #define SOC_CCOMP_TIMER_SUPPORTED       1
-#define SOC_DIG_SIGN_SUPPORTED          0
+#define SOC_DIG_SIGN_SUPPORTED          1
 #define SOC_HMAC_SUPPORTED              1
 #define SOC_ASYNC_MEMCPY_SUPPORTED      1
 #define SOC_SUPPORTS_SECURE_DL_MODE     1
@@ -28,6 +28,8 @@
 #define SOC_FLASH_ENCRYPTION_XTS_AES      1
 #define SOC_FLASH_ENCRYPTION_XTS_AES_256 1
 #define SOC_PSRAM_DMA_CAPABLE           1
+#define SOC_XT_WDT_SUPPORTED            1
+
 
 /*-------------------------- SOC CAPS ----------------------------------------*/
 #define SOC_APPCPU_HAS_CLOCK_GATING_BUG (1)
@@ -48,6 +50,17 @@
 
 /*-------------------------- CPU CAPS ----------------------------------------*/
 #include "cpu_caps.h"
+
+/*-------------------------- DIGITAL SIGNATURE CAPS ----------------------------------------*/
+/** The maximum length of a Digital Signature in bits. */
+#define SOC_DS_SIGNATURE_MAX_BIT_LEN (4096)
+
+/** Initialization vector (IV) length for the RSA key parameter message digest (MD) in bytes. */
+#define SOC_DS_KEY_PARAM_MD_IV_LENGTH (16)
+
+/** Maximum wait time for DS parameter decryption key. If overdue, then key error.
+    See TRM DS chapter for more details */
+#define SOC_DS_KEY_CHECK_MAX_WAIT_US (1100)
 
 /*-------------------------- GDMA CAPS ---------------------------------------*/
 #define SOC_GDMA_GROUPS            (1)  // Number of GDMA groups
@@ -119,6 +132,18 @@
 #define SOC_LCD_RGB_PANELS              (1)  /*!< Support one RGB LCD panel */
 #define SOC_LCD_I80_BUS_WIDTH           (16) /*!< Intel 8080 bus width */
 #define SOC_LCD_RGB_DATA_WIDTH          (16) /*!< Number of LCD data lines */
+
+/*-------------------------- RTC CAPS --------------------------------------*/
+#define SOC_RTC_CNTL_CPU_PD_DMA_BUS_WIDTH       (128)
+#define SOC_RTC_CNTL_CPU_PD_REG_FILE_NUM        (549)
+#define SOC_RTC_CNTL_CPU_PD_DMA_ADDR_ALIGN      (SOC_RTC_CNTL_CPU_PD_DMA_BUS_WIDTH >> 3)
+#define SOC_RTC_CNTL_CPU_PD_DMA_BLOCK_SIZE      (SOC_RTC_CNTL_CPU_PD_DMA_BUS_WIDTH >> 3)
+
+#define SOC_RTC_CNTL_CPU_PD_RETENTION_MEM_SIZE  (SOC_RTC_CNTL_CPU_PD_REG_FILE_NUM * (SOC_RTC_CNTL_CPU_PD_DMA_BUS_WIDTH >> 3))
+
+/* I/D Cache tag memory retention hardware parameters */
+#define SOC_RTC_CNTL_TAGMEM_PD_DMA_BUS_WIDTH    (128)
+#define SOC_RTC_CNTL_TAGMEM_PD_DMA_ADDR_ALIGN   (SOC_RTC_CNTL_TAGMEM_PD_DMA_BUS_WIDTH >> 3)
 
 /*-------------------------- RTCIO CAPS --------------------------------------*/
 #include "rtc_io_caps.h"
@@ -228,6 +253,10 @@
 #define SOC_PM_SUPPORT_WIFI_WAKEUP      (1)
 
 #define SOC_PM_SUPPORT_BT_WAKEUP        (1)
+
+#define SOC_PM_SUPPORT_CPU_PD           (1)
+
+#define SOC_PM_SUPPORT_TAGMEM_PD        (1)
 
 
 /*-------------------------- Flash Encryption CAPS----------------------------*/

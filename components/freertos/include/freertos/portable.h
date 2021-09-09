@@ -1,5 +1,5 @@
 /*
- * FreeRTOS Kernel V10.2.1
+ * FreeRTOS Kernel V10.4.3
  * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -209,6 +209,21 @@ BaseType_t xPortStartScheduler( void ) PRIVILEGED_FUNCTION;
  * executing.
  */
 void vPortEndScheduler( void ) PRIVILEGED_FUNCTION;
+
+/*
+ * The structures and methods of manipulating the MPU are contained within the
+ * port layer.
+ *
+ * Fills the xMPUSettings structure with the memory region information
+ * contained in xRegions.
+ */
+#if ( portUSING_MPU_WRAPPERS == 1 )
+    struct xMEMORY_REGION;
+    void vPortStoreTaskMPUSettings( xMPU_SETTINGS * xMPUSettings,
+                                    const struct xMEMORY_REGION * const xRegions,
+                                    StackType_t * pxBottomOfStack,
+                                    uint32_t ulStackDepth ) PRIVILEGED_FUNCTION;
+#endif
 
 /* *INDENT-OFF* */
 #ifdef __cplusplus

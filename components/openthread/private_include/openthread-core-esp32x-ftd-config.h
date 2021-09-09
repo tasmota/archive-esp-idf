@@ -95,7 +95,7 @@
  *
  * The number of message buffers in buffer pool
  */
-#define OPENTHREAD_CONFIG_NUM_MESSAGE_BUFFERS 50
+#define OPENTHREAD_CONFIG_NUM_MESSAGE_BUFFERS CONFIG_OPENTHREAD_NUM_MESSAGE_BUFFERS
 
 /**
  * @def OPENTHREAD_CONFIG_COAP_API_ENABLE
@@ -186,6 +186,16 @@
  */
 #ifndef OPENTHREAD_CONFIG_SRP_SERVER_ENABLE
 #define OPENTHREAD_CONFIG_SRP_SERVER_ENABLE 1
+#endif
+
+/**
+ * @def OPENTHREAD_CONFIG_DNSSD_SERVER_ENABLE
+ *
+ * Define to 1 to enable DNS-SD Server support.
+ *
+ */
+#ifndef OPENTHREAD_CONFIG_DNSSD_SERVER_ENABLE
+#define OPENTHREAD_CONFIG_DNSSD_SERVER_ENABLE 1
 #endif
 
 #endif // CONFIG_OPENTHREAD_BORDER_ROUTER
@@ -329,6 +339,16 @@
  *
  */
 #define OPENTHREAD_CONFIG_PLATFORM_USEC_TIMER_ENABLE 1
+
+/**
+ * @def OPENTHREAD_CONFIG_PING_SENDER_ENABLE
+ *
+ * Define to 1 to enable ping sender module.
+ *
+ * Ping sender module implements sending ICMPv6 Echo Request messages and processing ICMPv6 Echo Reply messages.
+ *
+ */
+#define OPENTHREAD_CONFIG_PING_SENDER_ENABLE 1
 
 /**
  * @def OPENTHREAD_CONFIG_DTLS_MAX_CONTENT_LEN
