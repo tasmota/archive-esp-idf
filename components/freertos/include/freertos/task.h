@@ -690,7 +690,7 @@ typedef enum
  */
 #if ( portUSING_MPU_WRAPPERS == 1 )
     BaseType_t xTaskCreateRestricted( const TaskParameters_t * const pxTaskDefinition,
-	                                  TaskHandle_t * pxCreatedTask );
+                                      TaskHandle_t * pxCreatedTask );
 #endif
 
 /**
@@ -1929,6 +1929,62 @@ uint8_t* pxTaskGetStackStart( TaskHandle_t xTask) PRIVILEGED_FUNCTION;
 
 #endif
 
+#if ( configCHECK_FOR_STACK_OVERFLOW > 0 )
+
+     /**
+      * @cond
+      * task.h
+      * @code{c}
+      * void vApplicationStackOverflowHook( TaskHandle_t xTask char *pcTaskName);
+      * @endcode
+      * @endcond
+      * The application stack overflow hook is called when a stack overflow is detected for a task.
+      *
+      * Details on stack overflow detection can be found here: https://www.FreeRTOS.org/Stacks-and-stack-overflow-checking.html
+      *
+      * @param xTask the task that just exceeded its stack boundaries.
+      * @param pcTaskName A character string containing the name of the offending task.
+      */
+     void vApplicationStackOverflowHook( TaskHandle_t xTask,
+                                               char * pcTaskName );
+
+#endif
+
+#if  (  configUSE_TICK_HOOK > 0 )
+    /**
+     * @cond
+     *  task.h
+     * @code{c}
+     * void vApplicationTickHook( void );
+     * @endcode
+     * @endcond
+     *
+     * This hook function is called in the system tick handler after any OS work is completed.
+     */
+    void vApplicationTickHook( void ); /*lint !e526 Symbol not defined as it is an application callback. */
+
+#endif
+
+#if ( configSUPPORT_STATIC_ALLOCATION == 1 )
+    /**
+     * @cond
+     * task.h
+     * @code{c}
+     * void vApplicationGetIdleTaskMemory( StaticTask_t ** ppxIdleTaskTCBBuffer, StackType_t ** ppxIdleTaskStackBuffer, uint32_t *pulIdleTaskStackSize )
+     * @endcode
+     * @endcond
+     * This function is used to provide a statically allocated block of memory to FreeRTOS to hold the Idle Task TCB.  This function is required when
+     * configSUPPORT_STATIC_ALLOCATION is set.  For more information see this URI: https://www.FreeRTOS.org/a00110.html#configSUPPORT_STATIC_ALLOCATION
+     *
+     * @param ppxIdleTaskTCBBuffer A handle to a statically allocated TCB buffer
+     * @param ppxIdleTaskStackBuffer A handle to a statically allocated Stack buffer for thie idle task
+     * @param pulIdleTaskStackSize A pointer to the number of elements that will fit in the allocated stack buffer
+     */
+    void vApplicationGetIdleTaskMemory( StaticTask_t ** ppxIdleTaskTCBBuffer,
+                                               StackType_t ** ppxIdleTaskStackBuffer,
+                                               uint32_t * pulIdleTaskStackSize ); /*lint !e526 Symbol not defined as it is an application callback. */
+#endif
+
 /**
  * @cond
  * task.h
@@ -2272,7 +2328,7 @@ uint32_t ulTaskGetIdleRunTimeCounter( void ) PRIVILEGED_FUNCTION;
  *
  * eSetBits -
  * The target notification value is bitwise ORed with ulValue.
- * xTaskNofifyIndexed() always returns pdPASS in this case.
+ * xTaskNotifyIndexed() always returns pdPASS in this case.
  *
  * eIncrement -
  * The target notification value is incremented.  ulValue is not used and
@@ -2419,7 +2475,7 @@ BaseType_t xTaskGenericNotify( TaskHandle_t xTaskToNotify,
  * value, if at all.  Valid values for eAction are as follows:
  *
  * eSetBits -
- * The task's notification value is bitwise ORed with ulValue.  xTaskNofify()
+ * The task's notification value is bitwise ORed with ulValue.  xTaskNotify()
  * always returns pdPASS in this case.
  *
  * eIncrement -
@@ -2591,7 +2647,7 @@ BaseType_t xTaskGenericNotifyFromISR( TaskHandle_t xTaskToNotify,
  * the Blocked state for a notification to be received, should a notification
  * not already be pending when xTaskNotifyWait() was called.  The task
  * will not consume any processing time while it is in the Blocked state.  This
- * is specified in kernel ticks, the macro pdMS_TO_TICSK( value_in_ms ) can be
+ * is specified in kernel ticks, the macro pdMS_TO_TICKS( value_in_ms ) can be
  * used to convert a time specified in milliseconds to a time specified in
  * ticks.
  *
@@ -2865,7 +2921,7 @@ void vTaskGenericNotifyGiveFromISR( TaskHandle_t xTaskToNotify,
  * should the count not already be greater than zero when
  * ulTaskNotifyTake() was called.  The task will not consume any processing
  * time while it is in the Blocked state.  This is specified in kernel ticks,
- * the macro pdMS_TO_TICSK( value_in_ms ) can be used to convert a time
+ * the macro pdMS_TO_TICKS( value_in_ms ) can be used to convert a time
  * specified in milliseconds to a time specified in ticks.
  *
  * @return The task's notification count before it is either cleared to zero or
@@ -3050,7 +3106,7 @@ void vTaskSetTimeOutState( TimeOut_t * const pxTimeOut ) PRIVILEGED_FUNCTION;
  * @param pxTicksToWait The number of ticks to check for timeout i.e. if
  * pxTicksToWait ticks have passed since pxTimeOut was last updated (either by
  * vTaskSetTimeOutState() or xTaskCheckForTimeOut()), the timeout has occurred.
- * If the timeout has not occurred, pxTIcksToWait is updated to reflect the
+ * If the timeout has not occurred, pxTicksToWait is updated to reflect the
  * number of remaining ticks.
  *
  * @return If timeout has occurred, pdTRUE is returned. Otherwise pdFALSE is
@@ -3219,7 +3275,7 @@ BaseType_t xTaskIncrementTick( void ) PRIVILEGED_FUNCTION;
  * xItemValue value, and inserts the list item at the end of the list.
  *
  * The 'ordered' version uses the existing event list item value (which is the
- * owning tasks priority) to insert the list item into the event list is task
+ * owning task's priority) to insert the list item into the event list in task
  * priority order.
  *
  * @param pxEventList The list containing tasks that are blocked waiting
@@ -3229,7 +3285,7 @@ BaseType_t xTaskIncrementTick( void ) PRIVILEGED_FUNCTION;
  * event list is not ordered by task priority.
  *
  * @param xTicksToWait The maximum amount of time that the task should wait
- * for the event to occur.  This is specified in kernel ticks,the constant
+ * for the event to occur.  This is specified in kernel ticks, the constant
  * portTICK_PERIOD_MS can be used to convert kernel ticks into a real time
  * period.
  */
@@ -3290,7 +3346,7 @@ BaseType_t xTaskRemoveFromUnorderedEventList( ListItem_t * pxEventListItem,
  * Sets the pointer to the current TCB to the TCB of the highest priority task
  * that is ready to run.
  */
-void vTaskSwitchContext( void ) PRIVILEGED_FUNCTION;
+portDONT_DISCARD void vTaskSwitchContext( void ) PRIVILEGED_FUNCTION;
 
 /*
  * THESE FUNCTIONS MUST NOT BE USED FROM APPLICATION CODE.  THEY ARE USED BY

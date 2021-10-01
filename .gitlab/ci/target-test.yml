@@ -46,7 +46,7 @@
   extends:
     - .example_test_template
     - .rules:test:example_test-esp32
-variables:
+  variables:
     SUBMODULES_TO_FETCH: "all"
 
 test_weekend_mqtt:
@@ -633,7 +633,7 @@ UT_046:
 
 UT_047:
   extends: .unit_test_esp32s2_template
-  parallel: 4
+  parallel: 5
   tags:
     - ESP32S2_IDF
     - UT_T1_1
@@ -701,6 +701,18 @@ UT_S3_FLASH:
   tags:
     - ESP32S3_IDF
     - UT_T1_ESP_FLASH
+
+component_ut_test_ip101:
+  extends: .component_ut_esp32_template
+  tags:
+    - ESP32
+    - COMPONENT_UT_IP101
+
+component_ut_test_lan8720:
+  extends: .component_ut_esp32_template
+  tags:
+    - ESP32
+    - COMPONENT_UT_LAN8720
 
 .integration_test_template:
   extends:

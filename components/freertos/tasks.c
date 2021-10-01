@@ -155,9 +155,9 @@
         }                                                                     \
                                                                               \
         /* listGET_OWNER_OF_NEXT_ENTRY indexes through the list, so the tasks of \
-         * the same priority get an equal share of the processor time. */                    \
+         * the  same priority get an equal share of the processor time. */                    \
         listGET_OWNER_OF_NEXT_ENTRY( pxCurrentTCB[xPortGetCoreID()], &( pxReadyTasksLists[ uxTopPriority ] ) ); \
-        uxTopReadyPriority = uxTopPriority;                                                  \
+        uxTopReadyPriority = uxTopPriority;                                                   \
     } /* taskSELECT_HIGHEST_PRIORITY_TASK */
 
 /*-----------------------------------------------------------*/
@@ -418,8 +418,8 @@ PRIVILEGED_DATA static volatile UBaseType_t uxSchedulerSuspended[portNUM_PROCESS
 
 #if ( configGENERATE_RUN_TIME_STATS == 1 )
 
-    /* Do not move these variables to function scope as doing so prevents the
-    code working with debuggers that need to remove the static qualifier. */
+/* Do not move these variables to function scope as doing so prevents the
+ * code working with debuggers that need to remove the static qualifier. */
     PRIVILEGED_DATA static uint32_t ulTaskSwitchedInTime[portNUM_PROCESSORS] = {0U}; /*< Holds the value of a timer/counter the last time a task was switched in. */
     PRIVILEGED_DATA static uint32_t ulTotalRunTime = 0UL;                            /*< Holds the total amount of execution time as defined by the run time counter clock. */
 
@@ -483,7 +483,7 @@ static void prvInitialiseTaskLists( void ) PRIVILEGED_FUNCTION;
  * void prvIdleTask( void *pvParameters );
  *
  */
-static portTASK_FUNCTION_PROTO( prvIdleTask, pvParameters );
+static portTASK_FUNCTION_PROTO( prvIdleTask, pvParameters ) PRIVILEGED_FUNCTION;
 
 /*
  * Utility to free all memory allocated by the scheduler to hold a TCB,
@@ -814,12 +814,12 @@ void taskYIELD_OTHER_CORE( BaseType_t xCoreID, UBaseType_t uxPriority )
 #if ( configSUPPORT_DYNAMIC_ALLOCATION == 1 )
 
     BaseType_t xTaskCreatePinnedToCore( TaskFunction_t pvTaskCode,
-                                        const char * const pcName,
-                                        const uint32_t usStackDepth,
-                                        void * const pvParameters,
-                                        UBaseType_t uxPriority,
-                                        TaskHandle_t * const pvCreatedTask,
-                                        const BaseType_t xCoreID)
+                            const char * const pcName, /*lint !e971 Unqualified char types are allowed for strings and single characters only. */
+                            const uint32_t usStackDepth,
+                            void * const pvParameters,
+                            UBaseType_t uxPriority,
+                            TaskHandle_t * const pvCreatedTask,
+                            const BaseType_t xCoreID)
     {
         TCB_t * pxNewTCB;
         BaseType_t xReturn;
@@ -1906,7 +1906,7 @@ static void prvAddNewTaskToReadyList( TCB_t * pxNewTCB,
                 if( listIS_CONTAINED_WITHIN( &( pxReadyTasksLists[ uxPriorityUsedOnEntry ] ), &( pxTCB->xStateListItem ) ) != pdFALSE )
                 {
                     /* The task is currently in its ready list - remove before
-                     * adding it to it's new ready list.  As we are in a critical
+                     * adding it to its new ready list.  As we are in a critical
                      * section we can do this even if the scheduler is suspended. */
                     if( uxListRemove( &( pxTCB->xStateListItem ) ) == ( UBaseType_t ) 0 )
                     {
@@ -4035,7 +4035,7 @@ static portTASK_FUNCTION( prvIdleTask, pvParameters )
         const UBaseType_t uxNonApplicationTasks = 1;
         eSleepModeStatus eReturn = eStandardSleep;
 
-        taskEXIT_CRITICAL();
+        taskENTER_CRITICAL();
         if( listCURRENT_LIST_LENGTH( &xPendingReadyList[xPortGetCoreID()] ) != 0 )
         {
             /* A task was made ready while the scheduler was suspended. */
@@ -5349,7 +5349,7 @@ TickType_t uxTaskResetEventItemValue( void )
                 if( xTicksToWait > ( TickType_t ) 0 )
                 {
                     prvAddCurrentTaskToDelayedList( xPortGetCoreID(), xTicksToWait );
-                    traceTASK_NOTIFY_TAKE_BLOCK();
+                    traceTASK_NOTIFY_TAKE_BLOCK( uxIndexToWait );
 
                     /* All ports are written to allow a yield in a critical
                      * section (some will yield immediately, others wait until the
@@ -5371,7 +5371,7 @@ TickType_t uxTaskResetEventItemValue( void )
 
         taskENTER_CRITICAL();
         {
-            traceTASK_NOTIFY_TAKE();
+            traceTASK_NOTIFY_TAKE( uxIndexToWait );
             ulReturn = pxCurrentTCB[xPortGetCoreID()]->ulNotifiedValue[ uxIndexToWait ];
 
             if( ulReturn != 0UL )
@@ -5439,7 +5439,7 @@ TickType_t uxTaskResetEventItemValue( void )
                 if( xTicksToWait > ( TickType_t ) 0 )
                 {
                     prvAddCurrentTaskToDelayedList( xPortGetCoreID(), xTicksToWait);
-                    traceTASK_NOTIFY_WAIT_BLOCK();
+                    traceTASK_NOTIFY_WAIT_BLOCK( uxIndexToWait );
 
                     /* All ports are written to allow a yield in a critical
                      * section (some will yield immediately, others wait until the
@@ -5461,7 +5461,7 @@ TickType_t uxTaskResetEventItemValue( void )
 
         taskENTER_CRITICAL();
         {
-            traceTASK_NOTIFY_WAIT();
+            traceTASK_NOTIFY_WAIT( uxIndexToWait );
 
             if( pulNotificationValue != NULL )
             {
@@ -5568,7 +5568,7 @@ TickType_t uxTaskResetEventItemValue( void )
                     break;
             }
 
-            traceTASK_NOTIFY();
+            traceTASK_NOTIFY( uxIndexToNotify );
 
             /* If the task is in the blocked state specifically to wait for a
              * notification then unblock it now. */
@@ -5713,7 +5713,7 @@ TickType_t uxTaskResetEventItemValue( void )
                     break;
             }
 
-            traceTASK_NOTIFY_FROM_ISR();
+            traceTASK_NOTIFY_FROM_ISR( uxIndexToNotify );
 
             /* If the task is in the blocked state specifically to wait for a
              * notification then unblock it now. */
@@ -5803,7 +5803,7 @@ TickType_t uxTaskResetEventItemValue( void )
              * semaphore. */
             ( pxTCB->ulNotifiedValue[ uxIndexToNotify ] )++;
 
-            traceTASK_NOTIFY_GIVE_FROM_ISR();
+            traceTASK_NOTIFY_GIVE_FROM_ISR( uxIndexToNotify );
 
             /* If the task is in the blocked state specifically to wait for a
              * notification then unblock it now. */
