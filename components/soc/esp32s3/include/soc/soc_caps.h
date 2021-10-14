@@ -132,16 +132,17 @@
 #define SOC_PCNT_THRES_POINT_PER_UNIT (2)
 
 /*-------------------------- RMT CAPS ----------------------------------------*/
-#define SOC_RMT_GROUPS                  (1)  /*!< One RMT group */
-#define SOC_RMT_TX_CANDIDATES_PER_GROUP (4)  /*!< Number of channels that capable of Transmit in each group */
-#define SOC_RMT_RX_CANDIDATES_PER_GROUP (4)  /*!< Number of channels that capable of Receive in each group */
-#define SOC_RMT_CHANNELS_PER_GROUP      (8)  /*!< Total 8 channels */
-#define SOC_RMT_MEM_WORDS_PER_CHANNEL   (48) /*!< Each channel owns 48 words memory (1 word = 4 Bytes) */
-#define SOC_RMT_SUPPORT_RX_PINGPONG     (1)  /*!< Support Ping-Pong mode on RX path */
-#define SOC_RMT_SUPPORT_RX_DEMODULATION (1)  /*!< Support signal demodulation on RX path (i.e. remove carrier) */
-#define SOC_RMT_SUPPORT_TX_LOOP_COUNT   (1)  /*!< Support transmit specified number of cycles in loop mode */
-#define SOC_RMT_SUPPORT_TX_SYNCHRO      (1)  /*!< Support coordinate a group of TX channels to start simultaneously */
-#define SOC_RMT_SUPPORT_XTAL            (1)  /*!< Support set XTAL clock as the RMT clock source */
+#define SOC_RMT_GROUPS                    (1)  /*!< One RMT group */
+#define SOC_RMT_TX_CANDIDATES_PER_GROUP   (4)  /*!< Number of channels that capable of Transmit in each group */
+#define SOC_RMT_RX_CANDIDATES_PER_GROUP   (4)  /*!< Number of channels that capable of Receive in each group */
+#define SOC_RMT_CHANNELS_PER_GROUP        (8)  /*!< Total 8 channels */
+#define SOC_RMT_MEM_WORDS_PER_CHANNEL     (48) /*!< Each channel owns 48 words memory (1 word = 4 Bytes) */
+#define SOC_RMT_SUPPORT_RX_PINGPONG       (1)  /*!< Support Ping-Pong mode on RX path */
+#define SOC_RMT_SUPPORT_RX_DEMODULATION   (1)  /*!< Support signal demodulation on RX path (i.e. remove carrier) */
+#define SOC_RMT_SUPPORT_TX_LOOP_COUNT     (1)  /*!< Support transmit specified number of cycles in loop mode */
+#define SOC_RMT_SUPPORT_TX_LOOP_AUTOSTOP  (1)  /*!< Hardware support of auto-stop in loop mode */
+#define SOC_RMT_SUPPORT_TX_SYNCHRO        (1)  /*!< Support coordinate a group of TX channels to start simultaneously */
+#define SOC_RMT_SUPPORT_XTAL              (1)  /*!< Support set XTAL clock as the RMT clock source */
 
 
 /*-------------------------- LCD CAPS ----------------------------------------*/
@@ -196,6 +197,7 @@
 #define SOC_SPIRAM_SUPPORTED            1
 
 /*-------------------------- SYS TIMER CAPS ----------------------------------*/
+#define SOC_TOUCH_VERSION_2                (1)  // Hardware version of touch sensor
 #define SOC_SYSTIMER_COUNTER_NUM           (2)  // Number of counter units
 #define SOC_SYSTIMER_ALARM_NUM             (3)  // Number of alarm units
 #define SOC_SYSTIMER_BIT_WIDTH_LO          (32) // Bit width of systimer low part
@@ -212,7 +214,12 @@
 #define SOC_TIMER_GROUP_TOTAL_TIMERS (SOC_TIMER_GROUPS * SOC_TIMER_GROUP_TIMERS_PER_GROUP)
 
 /*-------------------------- TOUCH SENSOR CAPS -------------------------------*/
-#include "touch_sensor_caps.h"
+#define SOC_TOUCH_SENSOR_NUM                (15) /*! 15 Touch channels */
+#define SOC_TOUCH_PROXIMITY_CHANNEL_NUM     (3)  /* Sopport touch proximity channel number. */
+#define SOC_TOUCH_PROXIMITY_MEAS_DONE_SUPPORTED (1) /*Sopport touch proximity channel measure done interrupt type. */
+
+#define SOC_TOUCH_PAD_THRESHOLD_MAX         (0x1FFFFF)  /*!<If set touch threshold max value, The touch sensor can't be in touched status */
+#define SOC_TOUCH_PAD_MEASURE_WAIT_MAX      (0xFF)  /*!<The timer frequency is 8Mhz, the max value is 0xff */
 
 /*-------------------------- TWAI CAPS ---------------------------------------*/
 #include "twai_caps.h"
@@ -278,6 +285,7 @@
 
 #define SOC_PM_SUPPORT_TAGMEM_PD        (1)
 
+#define SOC_PM_SUPPORT_TOUCH_SENSOR_WAKEUP    (1)     /*!<Supports waking up from touch pad trigger */
 
 /*-------------------------- Flash Encryption CAPS----------------------------*/
 #define SOC_FLASH_ENCRYPTED_XTS_AES_BLOCK_MAX   (64)

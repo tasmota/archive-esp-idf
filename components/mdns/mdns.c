@@ -1,16 +1,8 @@
-// Copyright 2015-2016 Espressif Systems (Shanghai) PTE LTD
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/*
+ * SPDX-FileCopyrightText: 2015-2021 Espressif Systems (Shanghai) CO LTD
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 
 #include "mdns.h"
 #include "mdns_private.h"
@@ -231,15 +223,8 @@ esp_err_t _mdns_send_rx_action(mdns_rx_packet_t * packet)
     return ESP_OK;
 }
 
-/**
- * @brief  Get the service name of a service
- */
-static const char * _mdns_get_service_instance_name(mdns_service_t * service)
+static const char *_mdns_get_default_instance_name(void)
 {
-    if (service && !_str_null_or_empty(service->instance)) {
-        return service->instance;
-    }
-
     if (_mdns_server && !_str_null_or_empty(_mdns_server->instance)) {
         return _mdns_server->instance;
     }
@@ -248,6 +233,49 @@ static const char * _mdns_get_service_instance_name(mdns_service_t * service)
         return _mdns_server->hostname;
     }
 
+    return NULL;
+}
+
+/**
+ * @brief  Get the service name of a service
+ */
+static const char * _mdns_get_service_instance_name(const mdns_service_t * service)
+{
+    if (service && !_str_null_or_empty(service->instance)) {
+        return service->instance;
+    }
+
+    return _mdns_get_default_instance_name();
+}
+
+static bool _mdns_instance_name_match(const char *lhs, const char *rhs)
+{
+    if (lhs == NULL) {
+        lhs = _mdns_get_default_instance_name();
+    }
+    if (rhs == NULL) {
+        rhs = _mdns_get_default_instance_name();
+    }
+    return !strcasecmp(lhs, rhs);
+}
+
+static bool _mdns_service_match_instance(const mdns_service_t *srv, const char *instance, const char *service,
+                                         const char *proto, const char *hostname)
+{
+    return !strcasecmp(srv->service, service) && _mdns_instance_name_match(srv->instance, instance) &&
+        !strcasecmp(srv->proto, proto) && (_str_null_or_empty(hostname) || !strcasecmp(srv->hostname, hostname));
+}
+
+static mdns_srv_item_t *_mdns_get_service_item_instance(const char *instance, const char *service, const char *proto,
+                                                        const char *hostname)
+{
+    mdns_srv_item_t *s = _mdns_server->services;
+    while (s) {
+        if (_mdns_service_match_instance(s->service, instance, service, proto, hostname)) {
+            return s;
+        }
+        s = s->next;
+    }
     return NULL;
 }
 
@@ -1428,7 +1456,13 @@ static void _mdns_create_answer_from_parsed_packet(mdns_parsed_packet_t *parsed_
     mdns_parsed_question_t *q = parsed_packet->questions;
     while (q) {
         shared = q->type == MDNS_TYPE_PTR || q->type == MDNS_TYPE_SDPTR || !parsed_packet->probe;
-        if (q->service && q->proto) {
+        if (q->type == MDNS_TYPE_SRV || q->type == MDNS_TYPE_TXT) {
+            mdns_srv_item_t *service = _mdns_get_service_item_instance(q->host, q->service, q->proto, NULL);
+            if (!_mdns_create_answer_from_service(packet, service->service, q, shared, send_flush)) {
+                _mdns_free_tx_packet(packet);
+                return;
+            }
+        } else if (q->service && q->proto) {
             mdns_srv_item_t *service = _mdns_server->services;
             while (service) {
                 if (_mdns_service_match(service->service, q->service, q->proto, NULL)) {
@@ -2667,7 +2701,12 @@ static bool _mdns_name_is_ours(mdns_name_t * name)
     }
 
     //find the service
-    mdns_srv_item_t * service = _mdns_get_service_item(name->service, name->proto, NULL);
+    mdns_srv_item_t * service;
+    if (_str_null_or_empty(name->host)) {
+        service = _mdns_get_service_item(name->service, name->proto, NULL);
+    } else {
+        service = _mdns_get_service_item_instance(name->host, name->service, name->proto, NULL);
+    }
     if (!service) {
         return false;
     }
@@ -2775,7 +2814,8 @@ static bool _mdns_question_matches(mdns_parsed_question_t * question, uint16_t t
         }
     } else if (service && (type == MDNS_TYPE_SRV || type == MDNS_TYPE_TXT)) {
         const char * name = _mdns_get_service_instance_name(service->service);
-        if (name && question->host && !strcasecmp(name, question->host)
+        if (name && question->host && question->service && question->proto && question->domain
+            && !strcasecmp(name, question->host)
             && !strcasecmp(service->service->service, question->service)
             && !strcasecmp(service->service->proto, question->proto)
             && !strcasecmp(MDNS_DEFAULT_DOMAIN, question->domain)) {
@@ -3237,7 +3277,7 @@ void mdns_parse_packet(mdns_rx_packet_t * packet)
                     } else if (service) { // only detect srv collision if service existed
                         col = _mdns_check_srv_collision(service->service, priority, weight, port, name->host, name->domain);
                     }
-                    if (col && (parsed_packet->probe || parsed_packet->authoritative)) {
+                    if (service && col && (parsed_packet->probe || parsed_packet->authoritative)) {
                         if (col > 0 || !port) {
                             do_not_reply = true;
                             if (_mdns_server->interfaces[packet->tcpip_if].pcbs[packet->ip_protocol].probe_running) {
@@ -4948,7 +4988,11 @@ esp_err_t mdns_service_add_for_host(const char * instance, const char * service,
         return ESP_ERR_NO_MEM;
     }
 
+#if CONFIG_MDNS_MULTIPLE_INSTANCE
+    mdns_srv_item_t * item = _mdns_get_service_item_instance(instance, service, proto, hostname);
+#else
     mdns_srv_item_t * item = _mdns_get_service_item(service, proto, hostname);
+#endif // CONFIG_MDNS_MULTIPLE_INSTANCE
     if (item) {
         return ESP_ERR_INVALID_ARG;
     }
@@ -5009,6 +5053,12 @@ esp_err_t mdns_service_add(const char * instance, const char * service, const ch
 bool mdns_service_exists(const char * service_type, const char * proto, const char * hostname)
 {
     return _mdns_get_service_item(service_type, proto, hostname) != NULL;
+}
+
+bool mdns_service_exists_with_instance(const char *instance, const char *service_type, const char *proto,
+                                       const char *hostname)
+{
+    return _mdns_get_service_item_instance(instance, service_type, proto, hostname) != NULL;
 }
 
 esp_err_t mdns_service_port_set_for_host(const char * service, const char * proto, const char * hostname, uint16_t port)
