@@ -790,9 +790,7 @@ components/esp_event/private_include/esp_event_private.h
 components/esp_event/test/test_default_loop.c
 components/esp_event/test/test_event.c
 components/esp_gdbstub/esp32/gdbstub_target_config.h
-components/esp_gdbstub/esp32c3/gdbstub_esp32c3.c
 components/esp_gdbstub/esp32c3/gdbstub_target_config.h
-components/esp_gdbstub/esp32h2/gdbstub_esp32h2.c
 components/esp_gdbstub/esp32h2/gdbstub_target_config.h
 components/esp_gdbstub/esp32s2/gdbstub_target_config.h
 components/esp_gdbstub/esp32s3/gdbstub_target_config.h
@@ -3725,9 +3723,7 @@ examples/protocols/pppos_client/components/modem/include/sim800.h
 examples/protocols/pppos_client/components/modem/src/bg96.c
 examples/protocols/pppos_client/components/modem/src/esp_modem_compat.c
 examples/protocols/pppos_client/components/modem/src/esp_modem_dce_service.c
-examples/protocols/pppos_client/components/modem/src/esp_modem_netif.c
 examples/protocols/pppos_client/components/modem/src/sim7600.c
-examples/protocols/pppos_client/components/modem/src/sim800.c
 examples/protocols/pppos_client/example_test.py
 examples/protocols/pppos_client/main/pppos_client_main.c
 examples/protocols/slip/slip_udp/components/slip_modem/include/slip_modem.h
@@ -4149,7 +4145,6 @@ tools/test_idf_py/test_idf_extensions/test_ext/__init__.py
 tools/test_idf_py/test_idf_extensions/test_ext/test_extension.py
 tools/test_idf_py/test_idf_py.py
 tools/test_idf_size/test_idf_size.py
-tools/test_idf_tools/test_idf_tools.py
 tools/test_mkdfu/test_mkdfu.py
 tools/test_mkuf2/test_mkuf2.py
 tools/unit-test-app/components/test_utils/ccomp_timer.c
