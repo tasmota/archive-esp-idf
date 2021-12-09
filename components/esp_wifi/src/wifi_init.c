@@ -102,6 +102,11 @@ esp_err_t esp_wifi_deinit(void)
         return ESP_ERR_WIFI_NOT_STOPPED;
     }
 
+    if (esp_wifi_internal_reg_rxcb(WIFI_IF_STA,  NULL) != ESP_OK ||
+        esp_wifi_internal_reg_rxcb(WIFI_IF_AP,  NULL) != ESP_OK) {
+        ESP_LOGW(TAG, "Failed to unregister Rx callbacks");
+    }
+
     esp_supplicant_deinit();
     err = esp_wifi_deinit_internal();
     if (err != ESP_OK) {
@@ -305,5 +310,11 @@ void set_xpd_sar(bool en)
 void ieee80211_ftm_attach(void)
 {
     /* Do not remove, stub to overwrite weak link in Wi-Fi Lib */
+}
+#endif
+
+#ifndef CONFIG_ESP_WIFI_SOFTAP_SUPPORT
+void net80211_softap_funcs_init(void)
+{
 }
 #endif
