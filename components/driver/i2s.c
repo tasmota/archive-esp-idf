@@ -2078,7 +2078,7 @@ esp_err_t i2s_write(i2s_port_t i2s_num, const void *src, size_t size, size_t *by
     while (size > 0) {
         if (p_i2s[i2s_num]->tx->rw_pos == p_i2s[i2s_num]->tx->buf_size || p_i2s[i2s_num]->tx->curr_ptr == NULL) {
             if (xQueueReceive(p_i2s[i2s_num]->tx->queue, &p_i2s[i2s_num]->tx->curr_ptr, ticks_to_wait) == pdFALSE) {
-                ret = ESP_ERR_TIMEOUT;
+                //ret = ESP_ERR_TIMEOUT; // https://github.com/espressif/esp-idf/issues/8121
                 break;
             }
             p_i2s[i2s_num]->tx->rw_pos = 0;
@@ -2160,7 +2160,7 @@ esp_err_t i2s_write_expand(i2s_port_t i2s_num, const void *src, size_t size, siz
     while (size > 0) {
         if (p_i2s[i2s_num]->tx->rw_pos == p_i2s[i2s_num]->tx->buf_size || p_i2s[i2s_num]->tx->curr_ptr == NULL) {
             if (xQueueReceive(p_i2s[i2s_num]->tx->queue, &p_i2s[i2s_num]->tx->curr_ptr, ticks_to_wait) == pdFALSE) {
-                ret = ESP_ERR_TIMEOUT;
+                //ret = ESP_ERR_TIMEOUT; // https://github.com/espressif/esp-idf/issues/8121
                 break;
             }
             p_i2s[i2s_num]->tx->rw_pos = 0;
@@ -2217,7 +2217,7 @@ esp_err_t i2s_read(i2s_port_t i2s_num, void *dest, size_t size, size_t *bytes_re
     while (size > 0) {
         if (p_i2s[i2s_num]->rx->rw_pos == p_i2s[i2s_num]->rx->buf_size || p_i2s[i2s_num]->rx->curr_ptr == NULL) {
             if (xQueueReceive(p_i2s[i2s_num]->rx->queue, &p_i2s[i2s_num]->rx->curr_ptr, ticks_to_wait) == pdFALSE) {
-                ret = ESP_ERR_TIMEOUT;
+                //ret = ESP_ERR_TIMEOUT; // https://github.com/espressif/esp-idf/issues/8121
                 break;
             }
             p_i2s[i2s_num]->rx->rw_pos = 0;
