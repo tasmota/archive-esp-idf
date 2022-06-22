@@ -18,7 +18,9 @@
 #include "esp_netif.h"
 #include "protocol_examples_common.h"
 #include "esp_tls.h"
+#if CONFIG_MBEDTLS_CERTIFICATE_BUNDLE
 #include "esp_crt_bundle.h"
+#endif
 
 #include "esp_http_client.h"
 
@@ -367,6 +369,7 @@ static void http_auth_digest(void)
 }
 #endif
 
+#if CONFIG_MBEDTLS_CERTIFICATE_BUNDLE
 static void https_with_url(void)
 {
     esp_http_client_config_t config = {
@@ -386,6 +389,7 @@ static void https_with_url(void)
     }
     esp_http_client_cleanup(client);
 }
+#endif // CONFIG_MBEDTLS_CERTIFICATE_BUNDLE
 
 static void https_with_hostname_path(void)
 {
@@ -452,6 +456,7 @@ static void http_redirect_to_https(void)
     esp_http_client_config_t config = {
         .url = "http://httpbin.org/redirect-to?url=https%3A%2F%2Fwww.howsmyssl.com",
         .event_handler = _http_event_handler,
+        .cert_pem = howsmyssl_com_root_cert_pem_start,
     };
     esp_http_client_handle_t client = esp_http_client_init(&config);
     esp_err_t err = esp_http_client_perform(client);
@@ -642,6 +647,7 @@ static void http_native_request(void)
     esp_http_client_cleanup(client);
 }
 
+#if CONFIG_MBEDTLS_CERTIFICATE_BUNDLE
 static void http_partial_download(void)
 {
     esp_http_client_config_t config = {
@@ -686,6 +692,7 @@ static void http_partial_download(void)
 
     esp_http_client_cleanup(client);
 }
+#endif // CONFIG_MBEDTLS_CERTIFICATE_BUNDLE
 
 static void http_test_task(void *pvParameters)
 {
@@ -700,7 +707,9 @@ static void http_test_task(void *pvParameters)
 #endif
     http_relative_redirect();
     http_absolute_redirect();
+#if CONFIG_MBEDTLS_CERTIFICATE_BUNDLE
     https_with_url();
+#endif
     https_with_hostname_path();
     http_redirect_to_https();
     http_download_chunk();
@@ -708,7 +717,9 @@ static void http_test_task(void *pvParameters)
     https_async();
     https_with_invalid_url();
     http_native_request();
+#if CONFIG_MBEDTLS_CERTIFICATE_BUNDLE
     http_partial_download();
+#endif
 
     ESP_LOGI(TAG, "Finish http example");
     vTaskDelete(NULL);
