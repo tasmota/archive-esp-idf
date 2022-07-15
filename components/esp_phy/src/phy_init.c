@@ -241,12 +241,6 @@ void esp_phy_enable(void)
 #if CONFIG_IDF_TARGET_ESP32
         coex_bt_high_prio();
 #endif
-
-#if CONFIG_BT_ENABLED && (CONFIG_IDF_TARGET_ESP32C3 || CONFIG_IDF_TARGET_ESP32S3)
-    extern void coex_pti_v2(void);
-    coex_pti_v2();
-#endif
-
     }
     s_phy_access_ref++;
 
@@ -283,8 +277,8 @@ void IRAM_ATTR esp_wifi_bt_power_domain_on(void)
     if (s_wifi_bt_pd_controller.count++ == 0) {
         CLEAR_PERI_REG_MASK(RTC_CNTL_DIG_PWC_REG, RTC_CNTL_WIFI_FORCE_PD);
 #if CONFIG_IDF_TARGET_ESP32C3 || CONFIG_IDF_TARGET_ESP32S3
-        SET_PERI_REG_MASK(SYSCON_WIFI_RST_EN_REG, SYSTEM_BB_RST | SYSTEM_FE_RST);
-        CLEAR_PERI_REG_MASK(SYSCON_WIFI_RST_EN_REG, SYSTEM_BB_RST | SYSTEM_FE_RST);
+        SET_PERI_REG_MASK(SYSCON_WIFI_RST_EN_REG, SYSTEM_WIFIBB_RST | SYSTEM_FE_RST);
+        CLEAR_PERI_REG_MASK(SYSCON_WIFI_RST_EN_REG, SYSTEM_WIFIBB_RST | SYSTEM_FE_RST);
 #endif
         CLEAR_PERI_REG_MASK(RTC_CNTL_DIG_ISO_REG, RTC_CNTL_WIFI_FORCE_ISO);
     }
