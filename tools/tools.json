@@ -55,6 +55,8 @@
             "url": "https://github.com/espressif/crosstool-NG/releases/download/esp-2021r2-patch3/xtensa-esp32-elf-gcc8_4_0-esp-2021r2-patch3-macos.tar.gz"
           },
           "macos-arm64": {
+            "sha256": "56b1cd3bbeed8f6de7c18bbfb0907f4629adf71acf40f6f72c2296ec61609f98",
+            "size": 53680661,
             "url": "https://github.com/Jason2866/crosstool-NG/releases/download/8.4.0/toolchain-xtensa-esp32.tar.gz"
           },
           "name": "esp-2021r2-patch3-8.4.0",
@@ -127,6 +129,8 @@
             "url": "https://github.com/espressif/crosstool-NG/releases/download/esp-2021r2-patch3/xtensa-esp32s2-elf-gcc8_4_0-esp-2021r2-patch3-macos.tar.gz"
           },
           "macos-arm64": {
+            "sha256": "df7d149091f58b82116a43e410b623c5347dd09a48a40cf80dca399c5d775595",
+            "size": 90833015,
             "url": "https://github.com/Jason2866/crosstool-NG/releases/download/8.4.0/toolchain-xtensa-esp32s2.tar.gz"
           },
           "name": "esp-2021r2-patch3-8.4.0",
@@ -199,6 +203,8 @@
             "url": "https://github.com/espressif/crosstool-NG/releases/download/esp-2021r2-patch3/xtensa-esp32s3-elf-gcc8_4_0-esp-2021r2-patch3-macos.tar.gz"
           },
           "macos-arm64": {
+            "sha256": "c6e97ca8039d53d1fe2b6034e9bee5995487b2d53c42beeeda2a160620cf5a5a",
+            "size": 91063399,
             "url": "https://github.com/Jason2866/crosstool-NG/releases/download/8.4.0/toolchain-xtensa-esp32s3.tar.gz"
           },
           "name": "esp-2021r2-patch3-8.4.0",
@@ -324,6 +330,8 @@
             "url": "https://github.com/espressif/crosstool-NG/releases/download/esp-2021r2-patch3/riscv32-esp-elf-gcc8_4_0-esp-2021r2-patch3-macos.tar.gz"
           },
           "macos-arm64": {
+            "sha256": "72509be9d82ce01b69e82fc3d74fe8e011dccd5338cfa31131eee3a2d7f35709",
+            "size": 59375342,
             "url": "https://github.com/Jason2866/crosstool-NG/releases/download/8.4.0/toolchain-riscv32-esp.tar.gz"
           },
           "name": "esp-2021r2-patch3-8.4.0",
