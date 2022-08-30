@@ -55,8 +55,8 @@
             "url": "https://github.com/espressif/crosstool-NG/releases/download/esp-2021r2-patch3/xtensa-esp32-elf-gcc8_4_0-esp-2021r2-patch3-macos.tar.gz"
           },
           "macos-arm64": {
-            "sha256": "11248eda551161f764e94744b0c134c5ad6f4927fb2d487c5037372d85b235a7",
-            "size": 52432423,
+            "sha256": "b325375c30b10cb681e66aeb656dcbd1493250c3b74662a5bb7bd9e43a916bb2",
+            "size": 52416502,
             "url": "https://github.com/Jason2866/crosstool-NG/releases/download/8.4.0/toolchain-xtensa-esp32.tar.gz"
           },
           "name": "esp-2021r2-patch3-8.4.0",
@@ -129,8 +129,8 @@
             "url": "https://github.com/espressif/crosstool-NG/releases/download/esp-2021r2-patch3/xtensa-esp32s2-elf-gcc8_4_0-esp-2021r2-patch3-macos.tar.gz"
           },
           "macos-arm64": {
-            "sha256": "6baaa4ad0b6f014f6ef8a2d5672c4c767c0bb2a1642eeb55eb07e0b02c63f58a",
-            "size": 89486342,
+            "sha256": "0d32ca5f54dfae714edabe1c3d37042db3af6eae22cef257c884e8d5c1489e7c",
+            "size": 89476581,
             "url": "https://github.com/Jason2866/crosstool-NG/releases/download/8.4.0/toolchain-xtensa-esp32s2.tar.gz"
           },
           "name": "esp-2021r2-patch3-8.4.0",
@@ -204,13 +204,13 @@
           },
           "macos-arm64": {
             "sha256": "58b08a166f011471a50b1f28cf544b7b86455fddb1aad2f2cd5995c761cc5437",
-            "size": 90039730,
+            "size": 89991553,
             "url": "https://github.com/Jason2866/crosstool-NG/releases/download/8.4.0/toolchain-xtensa-esp32s3.tar.gz"
           },
           "name": "esp-2021r2-patch3-8.4.0",
           "status": "recommended",
           "win32": {
-            "sha256": "1b70163acccc5655449de1d149427a54f384156bd35816ec60c422d76d033f05",
+            "sha256": "71bf4288a4206f1d36c46d045ab20a32dd091a3c4dbfd82f794471e458f2b682",
             "size": 116847008,
             "url": "https://github.com/espressif/crosstool-NG/releases/download/esp-2021r2-patch3/xtensa-esp32s3-elf-gcc8_4_0-esp-2021r2-patch3-win32.zip"
           },
@@ -330,8 +330,8 @@
             "url": "https://github.com/espressif/crosstool-NG/releases/download/esp-2021r2-patch3/riscv32-esp-elf-gcc8_4_0-esp-2021r2-patch3-macos.tar.gz"
           },
           "macos-arm64": {
-            "sha256": "32d94e840e305b7629c30b6b9639f45084235312d797fae3829c59dd60a5729e",
-            "size": 57681673,
+            "sha256": "738067b1d6cd0605e2dc5cc6f31e2fe1f15fa6d4f063fbd853479dc32a40c8c6",
+            "size": 57677476,
             "url": "https://github.com/Jason2866/crosstool-NG/releases/download/8.4.0/toolchain-riscv32-esp.tar.gz"
           },
           "name": "esp-2021r2-patch3-8.4.0",
