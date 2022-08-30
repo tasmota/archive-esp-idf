@@ -210,7 +210,7 @@
           "name": "esp-2021r2-patch3-8.4.0",
           "status": "recommended",
           "win32": {
-            "sha256": "71bf4288a4206f1d36c46d045ab20a32dd091a3c4dbfd82f794471e458f2b682",
+            "sha256": "1b70163acccc5655449de1d149427a54f384156bd35816ec60c422d76d033f05",
             "size": 116847008,
             "url": "https://github.com/espressif/crosstool-NG/releases/download/esp-2021r2-patch3/xtensa-esp32s3-elf-gcc8_4_0-esp-2021r2-patch3-win32.zip"
           },
